@@ -520,7 +520,7 @@ class AllPatchModel(JigsawModel):
 
         self.attention_pool_u0 = nn.Parameter(torch.rand(size = (self.d_model,), dtype = torch.float, requires_grad=True))
 
-        transformer_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=32, dropout=0.1, dim_feedforward=640, activation='gelu')
+        transformer_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=32, dropout=0.1, dim_feedforward=self.f_model//32, activation='gelu')
         layer_norm = nn.LayerNorm(normalized_shape=self.d_model)
         self.attention_pooling = nn.TransformerEncoder(
             encoder_layer=transformer_layer, num_layers=3, norm=layer_norm

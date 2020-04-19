@@ -26,7 +26,7 @@ def get_task(name, args):
     elif name == "custom_unlabelled":
         return CUSTOM(name, args, pretrain=True)
     elif name.startswith("custom_labelled"):
-        return CUSTOM(name, args, label_pct=float(name.replace("cifar100_lp", "").split("_")[0]) / 100)
+        return CUSTOM(name, args)#label_pct=float(name.replace("cifar100_lp", "").split("_")[0]) / 100)
     elif name == "cifar100_un":
         return CIFAR100(name, args, pretrain=True)
     elif name.startswith("cifar100_lp"):
@@ -299,17 +299,31 @@ class CUSTOM(Task):
         img_jitter = transforms.RandomApply([RandomTranslateWithReflect(4)], p=0.8)
         rnd_gray = transforms.RandomGrayscale(p=0.25)
         if self.pretrain:
-            train_transform = eval_transform = {
-                "image": transforms.Compose(
+            train_transform = eval_transform = train_transform = eval_transform = {
+                "idx": DupTransform(self.args.dup_pos),
+                "image": DupTransform(
+                    self.args.dup_pos,
+                    transforms.Compose(
                         [
+         #                   rand_crop,
+                            col_jitter,
+                            rnd_gray,
+                            transforms.Resize((256,256)),
                             transforms.ToTensor(),
+                            # normalize,
+                            # ToPatches(self.args.num_patches,self.args.view),
                         ]
-                    )
+                    ),
+                ),
+                "query": DupTransform(
+                    self.args.dup_pos, RandZero(self.args.num_patches, self.args.num_queries)
+                ),
             }
         else:
             train_transform = {
                 "image": transforms.Compose(
                     [
+                        transforms.Resize((256,256), interpolation=2),
                         transforms.ToTensor(),
                     ]
                 ),
@@ -317,6 +331,7 @@ class CUSTOM(Task):
             eval_transform = {
                 "image": transforms.Compose(
                     [
+                        transforms.Resize((256,256), interpolation=2),
                         transforms.ToTensor(), 
                     ]
                 ),
@@ -344,15 +359,11 @@ class CUSTOM(Task):
                                   transform=transform,
                                   extra_info=True
                                  )
-            
-            
-        if self.pretrain:
+
             train, val = self.make_data_split(train, 1.0)
-            raw_data = {"train": train, "val": val}
-        else:
-            test = datasets.CIFAR10(root=self.path, train=False, download=True)
-            train, val = self.make_data_split(train, self.label_pct)
+            val, test = self.make_data_split(val, 1.0)
             raw_data = {"train": train, "val": val, "test": test}
+            
         return raw_data
 
 
@@ -519,39 +530,3 @@ class STL10(Task):
             raw_data = {"train": stl10_train, "val": stl10_val, "test": stl10_test}
         return raw_data
 
-
-class MNIST(Task):
-    def __init__(self, name, args, pretrain=False, label_pct=0.0):
-        super().__init__(name, args, pretrain)
-        self.label_pct = label_pct
-
-    def _get_transforms(self):
-        return train_transform, eval_transform
-
-    def _load_raw_data(self):
-        mnist_train = datasets.MNIST(root=self.path, train=True, download=True)
-        if self.pretrain:
-            mnist_train, mnist_val = self.make_data_split(mnist_train)
-            raw_data = {"train": mnist_train, "val": mnist_val}
-        else:
-            mnist_test = datasets.MNIST(root=self.path, train=False, download=True)
-            mnist_train, mnist_val = self.make_data_split(mnist_train, self.label_pct)
-            raw_data = {"train": mnist_train, "val": mnist_val, "test": mnist_test}
-        return raw_data
-
-
-class ImageNet(Task):
-    def __init__(self, name, args, pretrain=False, label_pct=0.0):
-        super().__init__(name, args, pretrain)
-        self.label_pct = label_pct
-
-    @staticmethod
-    def _get_transforms():
-        raise NotImplementedError
-        train_transform = eval_transform = None
-        return train_transform, eval_transform
-
-    def _load_raw_data(self):
-        raise NotImplementedError
-        raw_data = None
-        return raw_data

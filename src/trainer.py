@@ -6,7 +6,6 @@ import os
 
 from utils import save_model
 
-
 class Trainer(object):
     def __init__(self, stage, model, task, args):
         """

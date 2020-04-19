@@ -59,7 +59,6 @@ class UnlabeledDataset(torch.utils.data.Dataset):
             scene_id = self.scene_index[index // NUM_SAMPLE_PER_SCENE]
             sample_id = index % NUM_SAMPLE_PER_SCENE
             sample_path = os.path.join(self.image_folder, f'scene_{scene_id}', f'sample_{sample_id}') 
-
             images = []
             for image_name in image_names:
                 image_path = os.path.join(sample_path, image_name)
@@ -78,7 +77,10 @@ class UnlabeledDataset(torch.utils.data.Dataset):
             
             image = Image.open(image_path)
 
-            return self.transform(image), index % NUM_IMAGE_PER_SAMPLE
+            return image, index % NUM_IMAGE_PER_SAMPLE
+
+
+            # return self.transform(image), index % NUM_IMAGE_PER_SAMPLE
 
 # The dataset class for labeled data.
 class LabeledDataset(torch.utils.data.Dataset):    
@@ -141,4 +143,4 @@ class LabeledDataset(torch.utils.data.Dataset):
         else:
             return image_tensor, target, road_image
 
-    
+        
