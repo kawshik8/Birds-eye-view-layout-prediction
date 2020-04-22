@@ -64,14 +64,15 @@ class UnlabeledDataset(torch.utils.data.Dataset):
             sample_id = index % NUM_SAMPLE_PER_SCENE
             sample_path = os.path.join(self.image_folder, f'scene_{scene_id}', f'sample_{sample_id}') 
             images = []
-            # queries = []
+            queries = []
             for image_name in image_names:
                 image_path = os.path.join(sample_path, image_name)
                 image = Image.open(image_path)
                 image.load()
-                images.append(image)
-                            
-            return images
+                images.append(self.transform["image"](image))
+                queries.append(self.transform["query"](image))
+            
+            return index, images, query 
 
         elif self.first_dim == 'image':
             scene_id = self.scene_index[index // (NUM_SAMPLE_PER_SCENE * NUM_IMAGE_PER_SAMPLE)]

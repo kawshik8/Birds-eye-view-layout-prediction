@@ -24,10 +24,26 @@ parser.add_argument(
 
 # pretrain_task objective settings for models other than selfie
 parser.add_argument(
-    "--pretrain-obj",
+    "--image-pretrain-obj",
     type=str,
-    default="nce_loss",
-    choices=["nce_loss", "infonce_loss", "multilabel_loss", "deepinfomax_loss"],
+    default="pirl_nce_loss",
+    choices=["pirl_nce_loss", "pirl_infonce_loss", "multilabel_loss", "deepinfomax_loss"],
+    help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
+)
+
+parser.add_argument(
+    "--view-pretrain-obj",
+    type=str,
+    default=None,
+    choices=["masked_autoencoder", "nce_loss", "infonce_loss"],
+    help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
+)
+
+parser.add_argument(
+    "--view-fusion_strategy",
+    type=str,
+    default="concat",
+    choices=["concat", "cross_attention"],
     help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
 

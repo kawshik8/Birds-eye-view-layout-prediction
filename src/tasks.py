@@ -328,33 +328,63 @@ class CUSTOM(Task):
 
         rand_crop_query = transforms.RandomResizedCrop(size=(255, 255),scale=(0.6, 1.0))
         if self.pretrain:
-            train_transform = eval_transform = {
-                "image": transforms.Compose(
-                        [
-                            rand_crop_image,
-                            col_jitter,
-                            rnd_gray,
-                            # transforms.Resize((256,256), interpolation=2),
-                            transforms.ToTensor(),
-                            # normalize,
-                            # ToPatches(self.args.num_patches,self.args.view),
-                        ]
-                    ),
-                "query": transforms.Compose(
-                        [
-                            rand_crop_query,
-                            # col_jitter,
-                            # rnd_gray,
-                            # transforms.Resize((256,256), interpolation=2),
-                            transforms.ToTensor(),
-                            
-                            # normalize,
-                            ToPatches(self.args.num_patches,self.args.view,transforms.Compose([torchvision.transforms.ToPILImage(),transforms.RandomCrop((64,64)),col_jitter,
-                            rnd_gray,transforms.ToTensor()])),
-                            
-                        ]
-                    ),
-            }
+            if "pirl" in self.args.image_pretrain_obj:
+                train_transform = eval_transform = {
+                    "image": transforms.Compose(
+                            [
+                                rand_crop_image,
+                                col_jitter,
+                                rnd_gray,
+                                # transforms.Resize((256,256), interpolation=2),
+                                transforms.ToTensor(),
+                                # normalize,
+                                # ToPatches(self.args.num_patches,self.args.view),
+                            ]
+                        ),
+                    "query": transforms.Compose(
+                            [
+                                rand_crop_query,
+                                # col_jitter,
+                                # rnd_gray,
+                                # transforms.Resize((256,256), interpolation=2),
+                                transforms.ToTensor(),
+                                
+                                # normalize,
+                                ToPatches(self.args.num_patches,self.args.view,transforms.Compose([torchvision.transforms.ToPILImage(),transforms.RandomCrop((64,64)),col_jitter,
+                                rnd_gray,transforms.ToTensor()])),
+                                
+                            ]
+                        ),
+                }
+            else:
+                train_transform = eval_transform = {
+                    "image": transforms.Compose(
+                            [
+                                rand_crop_image,
+                                col_jitter,
+                                rnd_gray,
+                                # transforms.Resize((256,256), interpolation=2),
+                                transforms.ToTensor(),
+                                # normalize,
+                                # ToPatches(self.args.num_patches,self.args.view),
+                            ]
+                        ),
+                    "query": transforms.Compose(
+                            [
+                                rand_crop_image,
+                                # col_jitter,
+                                # rnd_gray,
+                                # transforms.Resize((256,256), interpolation=2),
+                                transforms.ToTensor(),
+                                
+                                # normalize,
+                                # ToPatches(self.args.num_patches,self.args.view,transforms.Compose([torchvision.transforms.ToPILImage(),transforms.RandomCrop((64,64)),col_jitter,
+                                # rnd_gray,transforms.ToTensor()])),
+                                
+                            ]
+                        ),
+                }
+
         else:
             train_transform = {
                 "image": transforms.Compose(
@@ -392,6 +422,7 @@ class CUSTOM(Task):
                                     scene_index=val_index,
                                     transform = eval_transform,
                                 )
+                                
             # train, val = self.make_data_split(train, 1.0)
             self.args.vocab_size = len(train)
             raw_data = {"train": train, "val": val}
