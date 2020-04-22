@@ -5,8 +5,25 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torchvision.models.resnet as resnet
 import itertools
+import numpy as np
 from itertools import permutations,combinations
 from torch.nn.modules.module import Module
+
+OUT_BLOCK4_DIMENSION_DICT = {"resnet18": 512, "resnet34":512, "resnet50":2048, "resnet101":2048,
+                              "resnet152":2048}
+
+def get_base_model(name):
+    if name=="resnet18":
+        return resnet.resnet18()
+    if name=="resnet34":
+        return resnet.resnet34()
+    if name=="resnet50":
+        return resnet.resnet50()
+    if name=="resnet101":
+        return resnet.resnet101()
+    if name=="resnet152":
+        return resnet.resnet152()
+
 
 def get_model(name, args):
     if name == "selfie":
@@ -147,9 +164,9 @@ class BaselineModel(JigsawModel):
 
         self.args = args
         self.num_patches = args.num_patches
-        self.d_model = 1024
+        self.d_model = OUT_BLOCK4_DIMENSION_DICT[self.args.network_base]
 
-        full_resnet = resnet.resnet50()
+        full_resnet = get_base_model(self.args.network_base)
         self.patch_network = nn.Sequential(
             full_resnet.conv1,
             full_resnet.bn1,
@@ -158,14 +175,16 @@ class BaselineModel(JigsawModel):
             full_resnet.layer1,
             full_resnet.layer2,
             full_resnet.layer3,
+            full_resnet.layer4,
         )
-
-        self.res_block4 = full_resnet.layer4
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1,1))
 
+        self.project_dim = 128
+
         self.reduce = nn.Linear(self.num_patches*self.d_model, self.d_model)
-        self.project = nn.Linear(self.d_model, 128)
+        self.project1 = nn.Linear(self.d_model, self.project_dim)
+        self.project2 = nn.Linear(self.d_model, self.project_dim)
 
         self.pretrain_network = nn.Sequential(
             self.patch_network,
@@ -173,6 +192,16 @@ class BaselineModel(JigsawModel):
         )
 
         self.dropout = torch.nn.Dropout(p=0.5, inplace=False)
+
+        self.use_memory_bank = True
+
+        if self.use_memory_bank:
+            self.register_buffer("memory_bank", torch.randn(self.args.vocab_size, self.project_dim))
+            self.all_indices = np.arange(self.args.vocab_size)
+
+        self.negatives = self.args.num_negatives
+        self.lambda_wt = self.args.lambda_pirl
+        self.beta_wt = self.args.beta_ema
 
         self.cls_classifiers = nn.ModuleDict()
 
@@ -199,67 +228,120 @@ class BaselineModel(JigsawModel):
         self.sigmoid = nn.Sigmoid()
         self.shared_params = list(self.patch_network.parameters())
         #self.shared_params += list(self.attention_pooling.parameters())
-        self.pretrain_params = list(self.reduce.parameters())
+        self.pretrain_params = list(self.reduce.parameters()) + list(self.project1.parameters()) + list(self.project2.parameters())
         self.finetune_params = list(self.cls_classifiers.parameters())
-        if self.linear is False:
-            #self.finetune_params = list(self.cls_classifiers.parameters())
-            self.finetune_params += list(self.finetune_conv_layer.parameters())
-        else:
-            #self.finetune_params = list(self.linear_classifiers.parameters())
-            self.finetune_params += list(self.dropout.parameters())
 
     def forward(self, batch_input, task=None):
         batch_output = {}
         
-        inp = batch_input["image"]
+        index = batch_input["idx"]
+        image = batch_input["image"]
+        query = batch_input["query"]
+        # print(inp.shape)
 
-        device = inp.device#batch_input["aug"].device
-        bs = inp.size(0)
+        device = image.device#batch_input["aug"].device
+        bs = image.size(0)
+        self.batch_size = bs
 
         if self.stage == "pretrain":
 
-            patches = self.pretrain_network(inp.flatten(0, 1)).view(
+            patches = self.pretrain_network(query.flatten(0, 1)).view(
                 bs, self.num_patches, -1
             )  # (bs, num_patches, d_model)
            
             flatten = patches.view(bs,-1)
-            final = self.project(self.reduce(flatten))
+            patches = self.project1(self.reduce(flatten))
 
-            if self.pretrain_obj == "nce_loss" or self.pretrain_obj == "crossentropy_loss":
-                final = final.view(self.batch_size,self.dup_pos+1,self.d_model)
+            images = self.pretrain_network(image).view(
+                bs, -1
+            )
 
-                c = list(combinations(torch.arange(self.dup_pos+1), 2))
-                pos_ind = torch.Tensor([list(i) for i in c]).long()
-                neg_ind = torch.cat(
-                    [torch.cat([torch.arange(self.batch_size)[0:i],torch.arange(self.batch_size)[i+1:]]) for i in range(self.batch_size)]
-                    ).view(self.batch_size,-1).unsqueeze(1).repeat(1,pos_ind.shape[0],1)
-                negatives = final[neg_ind].view(self.batch_size,pos_ind.shape[0],-1,self.d_model)
-                positives = final[:,pos_ind]
-                final = torch.cat([positives,negatives],dim = 2)
+            images = self.project2(images)
+
+            if self.args.pretrain_obj == "nce_loss" or self.args.pretrain_obj == "infonce_loss":
+
+                # positives = F.cosine_similarity(images,patches,axis=-1)/0.07
                 
-                query = final[:,:,0:1,:].view(-1,1,self.d_model)
-                key = final[:,:,1:,:].view(query.shape[0],-1,self.d_model)
+                if self.use_memory_bank:
+                    positives_from_memory = self.memory_bank[index]
 
-                jigsaw_pred = F.cosine_similarity(query,key,axis=-1)/0.07
-                if self.pretrain_obj == "nce_loss":
-                    jigsaw_pred = F.softmax(jigsaw_pred,1)
+                    batch_indices = np.array(index)
 
-                jigsaw_labels = torch.zeros(jigsaw_pred.shape[1]).long().unsqueeze(0).repeat(jigsaw_pred.shape[0],1).to(device)
-                jigsaw_labels[:,0] = 1
+                    neg_ind = list(set(self.all_indices) - set(batch_indices))
 
-                randperm = torch.cat([torch.randperm(jigsaw_pred.shape[1]) for i in range(jigsaw_pred.shape[0])]).view_as(jigsaw_labels)
-                jigsaw_pred = jigsaw_pred[:,randperm][0]
-                jigsaw_labels = jigsaw_labels[:,randperm][0]
+                    neg_ind = neg_ind[:self.negatives]
+
+                    negatives_from_memory = self.memory_bank[neg_ind]
+
+                    total_instances = negatives_from_memory.shape[0] + 1
+                    
+                    positives = positives_from_memory.unsqueeze(1)
+                    negatives = negatives_from_memory.unsqueeze(0).repeat(bs,1,1)
+
+                    query1 = images.unsqueeze(1).repeat(1,total_instances,1)
+                    query2 = patches.unsqueeze(1).repeat(1,total_instances,1)
+                    
+                    key = torch.cat([positives,negatives],dim=1)
+
+                    scores1 = F.cosine_similarity(query1,key,axis=-1)/0.07
+                    scores2 = F.cosine_similarity(query2,key,axis=-1)/0.07
+
+                    jigsaw_labels = torch.zeros(bs,scores1.shape[1]).to(device)
+                    jigsaw_labels[:,0] = 1
+
+                    if self.args.pretrain_obj == "nce_loss":
+                        scores1 = torch.softmax(scores1,dim=-1)
+                        scores2 = torch.softmax(scores2,dim=-1)
+
+                        loss1 = F.binary_cross_entropy(scores1.float(), jigsaw_labels.float(),reduction='none').sum()/scores1.shape[0]
+                        loss2 = F.binary_cross_entropy(scores2.float(), jigsaw_labels.float(),reduction='none').sum()/scores2.shape[0]
+
+                        batch_output["loss"] = self.lambda_wt * loss1 + (1 - self.lambda_wt) * loss2
+                        
+                        batch_output["jigsaw_acc"] = ((scores1.max(dim=1)[1] == jigsaw_labels.max(dim=1)[1]).float().mean() + (scores2.max(dim=1)[1] == jigsaw_labels.max(dim=1)[1]).float().mean())/2
+
+                    else:
+
+                        loss1 = F.cross_entropy(scores1.float(),jigsaw_labels.max(dim=1)[1].long())
+                        loss2 = F.cross_entropy(scores2.float(),jigsaw_labels.max(dim=1)[1].long())
+
+                        batch_output["loss"] = self.lambda_wt * loss1 + (1 - self.lambda_wt) * loss2
+                 
+                        batch_output["jigsaw_acc"] = ((scores1.max(dim=1)[1] == jigsaw_labels.max(dim=1)[1]).float().mean() + (scores2.max(dim=1)[1] == jigsaw_labels.max(dim=1)[1]).float().mean())/2
 
 
-                if self.pretrain_obj == "nce_loss":
-                    batch_output["loss"] = F.binary_cross_entropy(jigsaw_pred.float(), jigsaw_labels.float(),reduction='none').sum()/jigsaw_pred.shape[0]
+                    self.memory_bank_t = self.memory_bank.clone().detach()
+                    self.memory_bank_t[batch_indices] = self.beta_wt * self.memory_bank_t[batch_indices] + (1-self.beta_wt) * images
+                    self.memory_bank = self.memory_bank_t.clone().detach()
+
                 else:
-                    batch_output["loss"] = F.cross_entropy(jigsaw_pred.float(),jigsaw_labels.max(dim=1)[1].long())
+                    neg_ind = torch.cat(
+                        [torch.cat([torch.arange(self.batch_size)[0:i],torch.arange(self.batch_size)[i+1:]]) for i in range(self.batch_size)]
+                        ).view(self.batch_size,-1)
+                    
+                    neg_images = images[neg_ind]
 
-                batch_output["jigsaw_acc"] = (jigsaw_pred.max(dim=1)[1] == jigsaw_labels.max(dim=1)[1]).float().mean()#F.nll_loss(F.log_softmax(jigsaw_pred,1), jigsaw_labels.max(dim=1)[1])#(jigsaw_pred.max(dim=1)[1] == jigsaw_labels.max(dim=1)[1]).float().mean()
+                    query = images.view(bs,1,-1).repeat(1,bs,1)
+
+                    key = torch.cat([patches.unsqueeze(1),neg_images],dim=1)
+
+                    scores = F.cosine_similarity(query,key,axis=-1)/0.07
+
+                    jigsaw_labels = torch.zeros(bs,scores.shape[1]).to(device)
+                    jigsaw_labels[:,0] = 1
+                    
+                    if self.args.pretrain_obj == "nce_loss":
+                        scores = torch.softmax(scores,dim=-1)
+                        batch_output["loss"] = F.binary_cross_entropy(scores.float(), jigsaw_labels.float(),reduction='none').sum()/scores.shape[0]
+                    else:
+                        batch_output["loss"] = F.cross_entropy(scores.float(),jigsaw_labels.max(dim=1)[1].long())
+                
+                    batch_output["jigsaw_acc"] = (scores.max(dim=1)[1] == (torch.ones(bs,).long()*0)).float().mean()
+
+                # neg_patches = patches[neg_ind]
+                # negatives = torch.cat([neg_images,neg_pat])
             
-            elif self.pretrain_obj == "multilabel_loss":
+            elif self.args.pretrain_obj == "multilabel_loss":
                 jigsaw_pred = torch.mm(
                 final, final.transpose(0,1)
                 )/(self.d_model**(1/2.0))  # (bs, bs)

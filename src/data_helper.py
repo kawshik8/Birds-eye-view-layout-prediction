@@ -11,6 +11,9 @@ import torchvision
 
 from helper import convert_map_to_lane_map, convert_map_to_road_map
 
+unlabelled_scene_index = np.arange(106)
+labelled_scene_index = np.arange(106,134)
+
 NUM_SAMPLE_PER_SCENE = 126
 NUM_IMAGE_PER_SAMPLE = 6
 image_names = [
@@ -22,9 +25,11 @@ image_names = [
     'CAM_BACK_RIGHT.jpeg',
     ]
 
+transform = torchvision.transforms.ToTensor()
+
 # The dataset class for unlabeled data.
 class UnlabeledDataset(torch.utils.data.Dataset):
-    def __init__(self, image_folder, scene_index, first_dim, transform):
+    def __init__(self, args, scene_index=unlabelled_scene_index, transform=transform):
         """
         Args:
             image_folder (string): the location of the image folder
@@ -40,13 +45,12 @@ class UnlabeledDataset(torch.utils.data.Dataset):
                     CAM_BACK_RIGHT: 5
             transform (Transform): The function to process the image
         """
-
-        self.image_folder = image_folder
+        self.args = args
+        self.image_folder = "../../../data/data/"
         self.scene_index = scene_index
         self.transform = transform
-
-        assert first_dim in ['sample', 'image']
-        self.first_dim = first_dim
+        self.first_dim = self.args.sampling_type
+        assert self.first_dim in ['sample', 'image']
 
     def __len__(self):
         if self.first_dim == 'sample':
@@ -60,13 +64,14 @@ class UnlabeledDataset(torch.utils.data.Dataset):
             sample_id = index % NUM_SAMPLE_PER_SCENE
             sample_path = os.path.join(self.image_folder, f'scene_{scene_id}', f'sample_{sample_id}') 
             images = []
+            # queries = []
             for image_name in image_names:
                 image_path = os.path.join(sample_path, image_name)
                 image = Image.open(image_path)
-                images.append(self.transform(image))
-            image_tensor = torch.stack(images)
-            
-            return image_tensor
+                image.load()
+                images.append(image)
+                            
+            return images
 
         elif self.first_dim == 'image':
             scene_id = self.scene_index[index // (NUM_SAMPLE_PER_SCENE * NUM_IMAGE_PER_SAMPLE)]
@@ -76,15 +81,19 @@ class UnlabeledDataset(torch.utils.data.Dataset):
             image_path = os.path.join(self.image_folder, f'scene_{scene_id}', f'sample_{sample_id}', image_name) 
             
             image = Image.open(image_path)
+            image.load()
 
-            return image, index % NUM_IMAGE_PER_SAMPLE
+            # print(type(image))
+            query = self.transform["query"](image)
+            image = self.transform["image"](image)
+            # print(type(image))
+            # print(image.shape,query.shape)
 
-
-            # return self.transform(image), index % NUM_IMAGE_PER_SAMPLE
+            return index,image,query#2, index % NUM_IMAGE_PER_SAMPLE
 
 # The dataset class for labeled data.
 class LabeledDataset(torch.utils.data.Dataset):    
-    def __init__(self, image_folder, annotation_file, scene_index, transform, extra_info=True):
+    def __init__(self, args, scene_index=labelled_scene_index, extra_info=True, transform = transform):
         """
         Args:
             image_folder (string): the location of the image folder
@@ -93,8 +102,10 @@ class LabeledDataset(torch.utils.data.Dataset):
             transform (Transform): The function to process the image
             extra_info (Boolean): whether you want the extra information
         """
-        
-        self.image_folder = image_folder
+
+        self.args = args
+        self.image_folder = "../../../data/data/"
+        annotation_file = os.path.join(self.args.data_dir,"annotation.csv")
         self.annotation_dataframe = pd.read_csv(annotation_file)
         self.scene_index = scene_index
         self.transform = transform
@@ -139,7 +150,7 @@ class LabeledDataset(torch.utils.data.Dataset):
             extra['lane_image'] = lane_image
 
             return image_tensor, target, road_image, extra
-        
+
         else:
             return image_tensor, target, road_image
 

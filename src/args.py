@@ -27,8 +27,17 @@ parser.add_argument(
     "--pretrain-obj",
     type=str,
     default="nce_loss",
-    choices=["nce_loss", "crossentropy_loss", "multilabel_loss", "deepinfomax_loss"],
+    choices=["nce_loss", "infonce_loss", "multilabel_loss", "deepinfomax_loss"],
     help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
+)
+
+# pretrain_task objective settings for models other than selfie
+parser.add_argument(
+    "--network-base",
+    type=str,
+    default="resnet50",
+    choices=["resnet18", "resnet34", "resnet50", "resnet101","resnet152"],
+    help="base model to train",
 )
 
 # Data settings
@@ -36,15 +45,15 @@ parser.add_argument(
 parser.add_argument(
     "--pretrain-task",
     type=str,
-    default="cifar10_un",
-    choices=["cifar10_un", "stl10_un", "mnist_un", "imagenet_un", "none"],
+    default="custom_un",
+    choices=["cifar10_un", "stl10_un", "mnist_un", "imagenet_un", "custom_un","none"],
     help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
 
 parser.add_argument(
     "--finetune-tasks",
     type=str,
-    default="cifar10_lp5",
+    default="none",
     help="""any non-empty subset from ['cifar10', 'mnist', 'imagenet'] x ['_lp5', '_lp10', '_lp20', '_lp100'] 
     (percent of labels available) x ["_res1", "_res2", "_res3", "_res4", "_res5"] 
     dont mention the layer in case of finetuning the whole layer
@@ -56,19 +65,46 @@ parser.add_argument(
 
 # view_type
 parser.add_argument(
-    "--view", type=str, default="normal", help="multiview or single view", choices = ["random_normal","random_multiview","random_singleview"]
+    "--view", type=str, default="normal", help="multiview or single view", choices = ["random_normal","random_multiview","random_singleview","normal"]
+)
+
+# sampling_type
+parser.add_argument(
+    "--sampling-type", type=str, default="image", help="type of instance"
 )
 
 # num_patches
 parser.add_argument(
     "--num-patches", type=int, default=9, help="number of patches an image is broken into"
 )
+
+# num_patches
+parser.add_argument(
+    "--lambda-pirl", type=float, default=0.5, help="lambda weights for pirl loss function"
+)
+
+# beta for exponential moving average
+parser.add_argument(
+    "--beta-ema", type=float, default=0.5, help="beta for exp moving average"
+)
+
+# alpha for 
+parser.add_argument(
+    "--num-negatives", type=int, default=1000, help="number of negatives to be used for contrastive learning"
+)
+
 # num_queries
 parser.add_argument(
     "--num-queries-percentage", type=float, default=0.25, help="number of patches an image to predict"
 )
 # num_workers
 parser.add_argument("--num_workers", type=int, default=16, help="number of cpu workers in iterator")
+
+# vocab_size
+parser.add_argument(
+    "--vocab-size", type=int, default=64, help="number of images in dataset",
+)
+
 # batch_size
 parser.add_argument(
     "--batch-size", type=int, default=64, help="number of images per minibatch",
@@ -90,7 +126,7 @@ parser.add_argument(
 
 # Model settings
 # model
-parser.add_argument("--model", type=str, default="selfie", choices=["baseline","selfie","Allp","Exp","selfie1"])
+parser.add_argument("--model", type=str, default="baseline", choices=["baseline","selfie","Allp","Exp","selfie1"])
 # TODO: some settings about model extensions
 # TODO: e.g. whether to use negative example from minibatch
 
@@ -165,5 +201,10 @@ def process_args(args):
     # TODO: some asserts, check the arguments
     args.num_queries = round(args.num_queries_percentage * args.num_patches)
     args.pretrain_task = list(filter(lambda task: task != "none", [args.pretrain_task]))
+
+    for i,task in enumerate(args.pretrain_task):
+        if "custom" in task:
+            args.pretrain_task[i]+= "_" + args.sampling_type
+
     args.finetune_tasks = list(filter(lambda task: task != "none", args.finetune_tasks.split(",")))
     args.exp_dir = os.path.join(args.results_dir, args.exp_name)

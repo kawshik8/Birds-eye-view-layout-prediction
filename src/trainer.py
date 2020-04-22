@@ -41,10 +41,11 @@ class Trainer(object):
         self.model.eval()
         self.task.reset_scorers()
         with torch.no_grad():
-            for batch, batch_input in enumerate(self.task.data_iterators[split]):
+            for batch, (idx,image,query) in enumerate(self.task.data_iterators[split]):
+                
+                batch_input = {"image":image,"query":query,"idx":idx}
+
                 for k, v in batch_input.items():
-                   if self.stage == "pretrain" and (k == "image" or k == "query"):
-                        batch_input[k] = v.flatten(0, 1)
                    batch_input[k] = batch_input[k].to(self.args.device)
                 #batch_input = batch_input.to(self.args.device)
                 batch_output = self.model(batch_input, self.task)
@@ -73,11 +74,12 @@ class Trainer(object):
         #self.val_interval = len(self.task.data_iterators["train"])
         all_param = [param for group in self.optimizer.param_groups for param in group["params"]]
         for epoch in range(math.ceil(self.total_iters / len(self.task.data_iterators["train"]))):
-            for batch, batch_input in enumerate(self.task.data_iterators["train"]):
+            for batch, (idx,image,query) in enumerate(self.task.data_iterators["train"]):
+                # print(idx,image.shape,query.shape)
                 #if self.stage == "pretrain":
+                batch_input = {"image":image,"query":query,"idx":idx}
+
                 for k, v in batch_input.items():
-                   if self.stage == "pretrain" and (k == "image" or k == "query"):
-                        batch_input[k] = v.flatten(0, 1)
                    batch_input[k] = batch_input[k].to(self.args.device)
                 self.model.zero_grad()
                 batch_output = self.model(batch_input, self.task)

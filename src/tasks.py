@@ -11,6 +11,7 @@ from torchvision import datasets, transforms
 import random
 import torch.nn.functional as F
 from data_helper import *
+import time 
 
 def get_task(name, args):
 
@@ -23,7 +24,7 @@ def get_task(name, args):
     elif name.startswith("cifar10_lp"):
         print(float(name.replace("cifar10_lp", "").split("_")[0]) / 100)
         return CIFAR10(name, args, label_pct=float(name.replace("cifar10_lp", "").split("_")[0]) / 100)
-    elif name == "custom_unlabelled":
+    elif name.startswith("custom_un"):
         return CUSTOM(name, args, pretrain=True)
     elif name.startswith("custom_labelled"):
         return CUSTOM(name, args)#label_pct=float(name.replace("cifar100_lp", "").split("_")[0]) / 100)
@@ -116,9 +117,10 @@ class RandZero:
 
 
 class ToPatches:
-    def __init__(self, num_patches, type="normal"):
+    def __init__(self, num_patches, type, transform):
         self.num_div = int(numpy.sqrt(num_patches))
         self.type = type
+        self.transform = transform
 
     def __call__(self, inp):
         if "random" in self.type:
@@ -136,6 +138,7 @@ class ToPatches:
                 out[i] = F.interpolate(inp[:,pixel:pixel+size,pixel:pixel+size], size=(3,height,height))
 
         else:
+            # print(inp.size())
             channel, height, width = inp.size()
             #print(inp.size())
             out = (
@@ -146,7 +149,14 @@ class ToPatches:
                 .flatten(1, 2)
                 .transpose(0, 1)
             )
-        return out
+            # print(out.shape)
+            out1 = torch.ones(self.num_div * self.num_div, channel, 64, 64)
+            for i in range(out.size(0)):
+                out1[i] = self.transform(out[i])
+            
+
+            # print(out.shape)
+        return out1
 
 
 class TransformDataset(torch.utils.data.dataset.Dataset):
@@ -203,13 +213,14 @@ class Task(object):
     def _preprocess_data(self, data):
         output = {}
         for split, dataset in data.items():
+
             idx, image, label = zip(
                 *[(idx, img, label) for idx, (img, label) in enumerate(dataset)]
             )
             output[split] = {
                 "idx": torch.LongTensor(idx),
                 "image": image,
-                "query": torch.ones((len(image), self.args.num_patches), dtype=torch.bool),
+                "query": image,
                 "label": torch.LongTensor(label),
             }
             if self.pretrain:
@@ -225,11 +236,13 @@ class Task(object):
             with open(split_filename, "r") as f:
                 split = json.loads(f.read())
         else:
+            # start = time.time()
             full_size = len(train_data)
             train_size = int(full_size * pct * split_p)
             val_size = int(full_size * pct * (1-split_p)) + train_size
             full_idx = numpy.random.permutation(full_size).tolist()
             split = {"train": full_idx[:train_size], "val": full_idx[train_size:val_size]}
+            # print(time.time()-start)
             with open(split_filename, "w") as f:
                 f.write(json.dumps(split))
         val_data = [train_data[idx] for idx in split["val"]]
@@ -241,17 +254,24 @@ class Task(object):
         load data, create data iterators. use cached data when available.
         """
         log.info("Loading %s data" % self.name)
+        start = time.time()
         data = self._load_raw_data()
-        data = self._preprocess_data(data)
+        print("load raw data", time.time()-start)
+        # start = time.time()
+        # data = self._preprocess_data(data)
+        # print("preprocess", time.time()-start)
+        # start = time.time()
+        # train_transform, eval_transform = self._get_transforms()
+        # if self.pretrain:
+        #     data["train"] = TransformDataset(train_transform, data["train"])
+        #     data["val"] = TransformDataset(eval_transform, data["val"])
+        # else:
+        #     data["train"] = TransformDataset(train_transform, data["train"])
+        #     data["val"] = TransformDataset(eval_transform, data["val"])
+        #     data["test"] = TransformDataset(eval_transform, data["test"])
+        # print("transform", time.time()-start)
 
-        train_transform, eval_transform = self._get_transforms()
-        if self.pretrain:
-            data["train"] = TransformDataset(train_transform, data["train"])
-            data["val"] = TransformDataset(eval_transform, data["val"])
-        else:
-            data["train"] = TransformDataset(train_transform, data["train"])
-            data["val"] = TransformDataset(eval_transform, data["val"])
-            data["test"] = TransformDataset(eval_transform, data["test"])
+        start = time.time()
 
         for split, dataset in data.items():
             self.data_iterators[split] = torch.utils.data.DataLoader(
@@ -262,6 +282,9 @@ class Task(object):
                 drop_last=(split == "train"),
                 num_workers=self.args.num_workers,
             )
+        print("dataloader", time.time()-start)
+
+
     def reset_scorers(self):
         self.scorers = {"count": 0}
         if self.pretrain:
@@ -288,9 +311,11 @@ class Task(object):
         return avg_scores
 
 class CUSTOM(Task):
-    def __init__(self, name, args, pretrain=False, label_pct=0.0, sample_type='scene'):
+    def __init__(self, name, args, pretrain=False, label_pct=0.0, sample_type='sample'):
         super().__init__(name, args, pretrain)
         self.label_pct = label_pct
+        self.instance_type = sample_type
+        self.args = args
 
     def _get_transforms(self):
         flip_lr = transforms.RandomHorizontalFlip(p=0.5)
@@ -298,26 +323,37 @@ class CUSTOM(Task):
         col_jitter = transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.2)], p=0.8)
         img_jitter = transforms.RandomApply([RandomTranslateWithReflect(4)], p=0.8)
         rnd_gray = transforms.RandomGrayscale(p=0.25)
+
+        rand_crop_image = transforms.RandomResizedCrop(size=(224, 224),scale=(0.6, 1.0))
+
+        rand_crop_query = transforms.RandomResizedCrop(size=(255, 255),scale=(0.6, 1.0))
         if self.pretrain:
-            train_transform = eval_transform = train_transform = eval_transform = {
-                "idx": DupTransform(self.args.dup_pos),
-                "image": DupTransform(
-                    self.args.dup_pos,
-                    transforms.Compose(
+            train_transform = eval_transform = {
+                "image": transforms.Compose(
                         [
-         #                   rand_crop,
+                            rand_crop_image,
                             col_jitter,
                             rnd_gray,
-                            transforms.Resize((256,256)),
+                            # transforms.Resize((256,256), interpolation=2),
                             transforms.ToTensor(),
                             # normalize,
                             # ToPatches(self.args.num_patches,self.args.view),
                         ]
                     ),
-                ),
-                "query": DupTransform(
-                    self.args.dup_pos, RandZero(self.args.num_patches, self.args.num_queries)
-                ),
+                "query": transforms.Compose(
+                        [
+                            rand_crop_query,
+                            # col_jitter,
+                            # rnd_gray,
+                            # transforms.Resize((256,256), interpolation=2),
+                            transforms.ToTensor(),
+                            
+                            # normalize,
+                            ToPatches(self.args.num_patches,self.args.view,transforms.Compose([torchvision.transforms.ToPILImage(),transforms.RandomCrop((64,64)),col_jitter,
+                            rnd_gray,transforms.ToTensor()])),
+                            
+                        ]
+                    ),
             }
         else:
             train_transform = {
@@ -340,30 +376,54 @@ class CUSTOM(Task):
 
     def _load_raw_data(self):
 
-        self.path = os.path.join(args.data_dir, self.name.split("_")[0])
-
+        train_transform, eval_transform = self._get_transforms()
         if self.pretrain:
-            scene_index = np.arange(134)
-            train = UnlabeledDataset(image_folder=self.path, 
-                                    scene_index=scene_index, 
-                                    first_dim='sample', 
-                                    transform=transform,
+            scene_index = np.random.permutation(np.arange(106))
+            train_index = scene_index[:-20]
+            val_index = scene_index[-20:]
+
+            train = UnlabeledDataset(
+                                    args = self.args,
+                                    scene_index=train_index,
+                                    transform = train_transform,
                                     )
-            train, val = self.make_data_split(train, 1.0)
+            val = UnlabeledDataset(
+                                    args = self.args,
+                                    scene_index=val_index,
+                                    transform = eval_transform,
+                                )
+            # train, val = self.make_data_split(train, 1.0)
+            self.args.vocab_size = len(train)
             raw_data = {"train": train, "val": val}
         else:
-            scene_index = np.arange(106, 134)
-            train = LabeledDataset(image_folder=os.path.join(self.path, "videos"),
-                                  annotation_file=os.path.join(self.path, "annotation.csv"),
-                                  scene_index=scene_index,
-                                  transform=transform,
-                                  extra_info=True
-                                 )
-
-            train, val = self.make_data_split(train, 1.0)
-            val, test = self.make_data_split(val, 1.0)
-            raw_data = {"train": train, "val": val, "test": test}
+            scene_index = np.random.permutation(np.arange(106, 134))
+            train_index = scene_index[:-8]
+            val_index = scene_index[-8:-4]
+            test_index = scene_index[-4:]
             
+            train = LabeledDataset(
+                                  args= self.args,
+                                  extra_info=True,
+                                  scene_index=train_index,
+                                  transform = train_transform,
+                                 )
+            val = LabeledDataset(
+                                  args= self.args,
+                                  extra_info=True,
+                                  scene_index=val_index,
+                                  transform = eval_transform,
+                                 )
+            test = LabeledDataset(
+                                  args= self.args,
+                                  extra_info=True,
+                                  scene_index=test_index,
+                                  transform = eval_transform,
+                                 )
+                                 
+            # train, val = self.make_data_split(train, 1.0)
+            # val, test = self.make_data_split(val, 1.0)
+            raw_data = {"train": train, "val": val, "test": test}
+
         return raw_data
 
 
@@ -433,6 +493,7 @@ class CIFAR10(Task):
             cifar10_test = datasets.CIFAR10(root=self.path, train=False, download=True)
             cifar10_train, cifar10_val = self.make_data_split(cifar10_train, self.label_pct)
             raw_data = {"train": cifar10_train, "val": cifar10_val, "test": cifar10_test}
+        print(type(cifar10_train),len(cifar10_train),cifar10_train[0])#,type(cifar10_train[0]),len(cifar10_train)[0])
         return raw_data
 
 
