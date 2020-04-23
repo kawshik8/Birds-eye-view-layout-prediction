@@ -189,7 +189,7 @@ class Task(object):
         self.reset_scorers()
         self.path = os.path.join(args.data_dir, self.name.split("_")[0])
         if pretrain:
-            self.eval_metric = "jigsaw_acc"
+            self.eval_metric = "acc"
         else:
             self.eval_metric = "cls_acc"
 
@@ -288,7 +288,7 @@ class Task(object):
     def reset_scorers(self):
         self.scorers = {"count": 0}
         if self.pretrain:
-            self.scorers.update({"loss": [], "jigsaw_acc": []})
+            self.scorers.update({"loss": [], "acc": []})
             # TODO: Update this when new auxiliary losses are introduced
         else:
             self.scorers.update({"loss": [], "cls_acc": []})
@@ -360,23 +360,26 @@ class CUSTOM(Task):
                 train_transform = eval_transform = {
                     "image": transforms.Compose(
                             [
-                                rand_crop_image,
+                                # rand_crop_image,
                                 col_jitter,
                                 rnd_gray,
-                                # transforms.Resize((256,256), interpolation=2),
+                                
+                                transforms.Resize((256,256), interpolation=2),
                                 transforms.ToTensor(),
+                                transforms.Normalize((0, 0, 0), (1,1,1)),
+                                # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                 # normalize,
                                 # ToPatches(self.args.num_patches,self.args.view),
                             ]
                         ),
                     "query": transforms.Compose(
                             [
-                                rand_crop_image,
+                                # rand_crop_image,
                                 # col_jitter,
                                 # rnd_gray,
-                                # transforms.Resize((256,256), interpolation=2),
+                                transforms.Resize((256,256), interpolation=2),
                                 transforms.ToTensor(),
-                                
+                                transforms.Normalize((0, 0, 0), (1,1,1)),
                                 # normalize,
                                 # ToPatches(self.args.num_patches,self.args.view,transforms.Compose([torchvision.transforms.ToPILImage(),transforms.RandomCrop((64,64)),col_jitter,
                                 # rnd_gray,transforms.ToTensor()])),

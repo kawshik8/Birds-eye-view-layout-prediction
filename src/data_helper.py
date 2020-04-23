@@ -63,6 +63,7 @@ class UnlabeledDataset(torch.utils.data.Dataset):
             scene_id = self.scene_index[index // NUM_SAMPLE_PER_SCENE]
             sample_id = index % NUM_SAMPLE_PER_SCENE
             sample_path = os.path.join(self.image_folder, f'scene_{scene_id}', f'sample_{sample_id}') 
+            
             images = []
             queries = []
             for image_name in image_names:
@@ -71,8 +72,13 @@ class UnlabeledDataset(torch.utils.data.Dataset):
                 image.load()
                 images.append(self.transform["image"](image))
                 queries.append(self.transform["query"](image))
+
+            # print(images[0].shape)
+            images = torch.cat(images).view(6,3,256,256)
+            queries = torch.cat(queries).view(6,3,256,256)
+            # print(images.shape)
             
-            return index, images, query 
+            return index, images, queries
 
         elif self.first_dim == 'image':
             scene_id = self.scene_index[index // (NUM_SAMPLE_PER_SCENE * NUM_IMAGE_PER_SAMPLE)]

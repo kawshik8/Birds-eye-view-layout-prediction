@@ -27,7 +27,7 @@ parser.add_argument(
     "--image-pretrain-obj",
     type=str,
     default="pirl_nce_loss",
-    choices=["pirl_nce_loss", "pirl_infonce_loss", "multilabel_loss", "deepinfomax_loss"],
+    choices=["pirl_nce_loss", "pirl_infonce_loss", "multilabel_loss", "deepinfomax_loss","none"],
     help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
 
@@ -35,7 +35,7 @@ parser.add_argument(
     "--view-pretrain-obj",
     type=str,
     default=None,
-    choices=["masked_autoencoder", "nce_loss", "infonce_loss"],
+    choices=["det_masked_autoencoder","var_masked_autoencoder","adv_masked_autoencoder", "nce_loss", "infonce_loss"],
     help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
 
@@ -51,7 +51,7 @@ parser.add_argument(
 parser.add_argument(
     "--network-base",
     type=str,
-    default="resnet50",
+    default="resnet18",
     choices=["resnet18", "resnet34", "resnet50", "resnet101","resnet152"],
     help="base model to train",
 )
