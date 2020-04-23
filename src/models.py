@@ -105,6 +105,38 @@ class block(nn.Module):
 
         return x
 
+class Resblock(nn.Module):
+    
+    def __init__(self, input_channels, output_channels, kernel, strides, pad, activation="relu", norm = True):
+        super().__init__()
+
+        self.conv = nn.Conv2d(in_channels = input_channels, out_channels = output_channels, kernel_size = kernel, stride = strides, padding = pad)
+
+        self.use_norm = norm
+
+        if norm:
+            self.bn = nn.BatchNorm2d(output_channels)
+        if activation == "relu":
+            self.activation = nn.ReLU(inplace=True)
+        elif activation == "leakyrelu":
+            self.activation = nn.LeakyReLU(0.2,inplace=True)
+        elif activation == "tanh":
+            self.activation = nn.Tanh()
+        elif activation == "sigmoid":
+            self.activation = nn.Sigmoid()
+
+    def forward(self, x1):
+
+        x = self.bn(x1)
+        x = self.activation(x)
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.activation(x)
+        x = self.conv(x)
+
+        x+=x1
+        return x
+
 class JigsawModel(nn.Module):
     def __init__(self, args):
         super().__init__()
@@ -466,6 +498,8 @@ class ViewSSLModels(JigsawModel):
         self.project_dim = 128
         self.mask_ninps = 1
 
+        self.reduce = nn.Conv2d((6-self.mask_ninps) * self.d_model, self.d_model, kernel_size = 1, stride = 1)
+
         if self.model_type == "det":
 
             decoder_network_layers = []
@@ -490,7 +524,6 @@ class ViewSSLModels(JigsawModel):
 
             self.decoder_network =  nn.Sequential(*decoder_network_layers)
 
-            self.reduce = nn.Conv2d((6-self.mask_ninps) * self.d_model, self.d_model, kernel_size = 1, stride = 1)
             self.decoding = nn.Sequential(self.decoder_network, self.reduce)
 
             self.loss_type = "mse"
@@ -518,7 +551,7 @@ class ViewSSLModels(JigsawModel):
             self.decoder_network = nn.Sequential(*decoder_network_layers)
 
             self.z_project = nn.Linear(self.d_model, 2*self.project_dim)
-            self.reduce = nn.Linear((6-self.mask_ninps) * self.d_model, self.d_model)
+            # self.reduce = nn.Linear((6-self.mask_ninps) * self.d_model, self.d_model)
             self.decoding = nn.Sequential(self.decoder_network, self.z_project, self.reduce)
 
             self.loss_type = "mse"
@@ -530,13 +563,29 @@ class ViewSSLModels(JigsawModel):
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1,1))
 
+        self.n_synthesize = 1
+
+        if self.n_synthesize > 0:
+            synthesizer_layers = []
+            for i in range(self.n_synthesize):
+                synthesizer_layers.append(Resblock(self.d_model,self.d_model, 3, 1, 1))
+            
+            self.synthesizer = nn.Sequential(*synthesizer_layers)
+
+            self.pretrain_network = nn.Sequential(
+            self.image_network,
+            self.synthesizer,
+            self.decoding,
+            )
+        else:
+            self.pretrain_network = nn.Sequential(
+            self.image_network,
+            self.decoding,
+            )
+
         self.fusion = self.args.view_fusion_strategy
 
-        self.pretrain_network = nn.Sequential(
-            self.image_network,
-            self.avg_pool,
-            self.decoding,
-        )
+        
 
         self.dropout = torch.nn.Dropout(p=0.5, inplace=False)
 
@@ -631,15 +680,16 @@ class ViewSSLModels(JigsawModel):
         views = views.view(bs,6 - self.mask_ninps,c,h,w)
         print(views.shape)
 
+        if self.det_fusion_strategy == "concat_fuse":
+            fusion = self.reduce(views.flatten(1,2))
+
+        elif self.det_fusion_strategy == "mean":
+            fusion = views.mean(dim=1)
+
+        if self.n_synthesize > 0:
+            fusion = self.synthesizer(fusion)
+
         if "det" in self.model_type:
-
-            if self.det_fusion_strategy == "concat_fuse":
-                print(views.flatten(1,2).shape)
-                fusion = self.reduce(views.flatten(1,2))
-
-            elif self.det_fusion_strategy == "mean":
-                fusion = views.mean(dim=1)
-            print(fusion.shape)
 
             mapped_image = self.decoder_network(fusion)
             print(mapped_image.shape, key_view.shape)
@@ -650,17 +700,7 @@ class ViewSSLModels(JigsawModel):
 
         else:
 
-            print("VAE")
-
-            views = self.avg_pool(views.flatten(0,1)).view(bs, 6 - self.mask_ninps,-1) 
-
-            print(views.shape)
-
-            if self.det_fusion_strategy == "concat_fuse":
-                fusion = self.reduce(views.flatten(1,2))
-
-            elif self.det_fusion_strategy == "mean":
-                fusion = views.mean(dim=1)
+            fusion = self.avg_pool(fusion).view(bs,self.d_model)
 
             mu_logvar = self.z_project(fusion).view(bs,2,-1)
 
