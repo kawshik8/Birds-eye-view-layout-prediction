@@ -112,7 +112,7 @@ class LabeledDataset(torch.utils.data.Dataset):
 
         self.args = args
         self.image_folder = "../../../data/data/"
-        annotation_file = os.path.join(self.args.data_dir,"annotation.csv")
+        annotation_file = os.path.join(self.image_folder,"annotation.csv")
         self.annotation_dataframe = pd.read_csv(annotation_file)
         self.scene_index = scene_index
         self.transform = transform
@@ -130,7 +130,8 @@ class LabeledDataset(torch.utils.data.Dataset):
         for image_name in image_names:
             image_path = os.path.join(sample_path, image_name)
             image = Image.open(image_path)
-            images.append(self.transform(image))
+            image.load()
+            images.append(self.transform["image"](image))
         image_tensor = torch.stack(images)
 
         data_entries = self.annotation_dataframe[(self.annotation_dataframe['scene'] == scene_id) & (self.annotation_dataframe['sample'] == sample_id)]
@@ -139,26 +140,26 @@ class LabeledDataset(torch.utils.data.Dataset):
         
         ego_path = os.path.join(sample_path, 'ego.png')
         ego_image = Image.open(ego_path)
+        ego_image.load()
         ego_image = torchvision.transforms.functional.to_tensor(ego_image)
         road_image = convert_map_to_road_map(ego_image)
-        
-        target = {}
-        target['bounding_box'] = torch.as_tensor(corners).view(-1, 2, 4)
-        target['category'] = torch.as_tensor(categories)
+        road_image = self.transform["road"](road_image.type(torch.FloatTensor))
+
+        bounding_box = torch.as_tensor(corners).view(-1, 2, 4)
+        classes = torch.as_tensor(categories)
 
         if self.extra_info:
             actions = data_entries.action_id.to_numpy()
             # You can change the binary_lane to False to get a lane with 
             lane_image = convert_map_to_lane_map(ego_image, binary_lane=True)
             
-            extra = {}
-            extra['action'] = torch.as_tensor(actions)
-            extra['ego_image'] = ego_image
-            extra['lane_image'] = lane_image
+            action = torch.as_tensor(actions)
+            ego = ego_image
+            road = lane_image
 
-            return image_tensor, target, road_image, extra
+            return index,image_tensor, bounding_box, classes, action, ego, road_image
 
         else:
-            return image_tensor, target, road_image
+            return index,image_tensor, bounding_box, classes
 
         

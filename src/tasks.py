@@ -26,7 +26,7 @@ def get_task(name, args):
         return CIFAR10(name, args, label_pct=float(name.replace("cifar10_lp", "").split("_")[0]) / 100)
     elif name.startswith("custom_un"):
         return CUSTOM(name, args, pretrain=True)
-    elif name.startswith("custom_labelled"):
+    elif name.startswith("custom_sup"):
         return CUSTOM(name, args)#label_pct=float(name.replace("cifar100_lp", "").split("_")[0]) / 100)
     elif name == "cifar100_un":
         return CIFAR100(name, args, pretrain=True)
@@ -291,7 +291,7 @@ class Task(object):
             self.scorers.update({"loss": [], "acc": []})
             # TODO: Update this when new auxiliary losses are introduced
         else:
-            self.scorers.update({"loss": [], "cls_acc": []})
+            self.scorers.update({"loss": [], "acc": []})
 
     def update_scorers(self, batch_input, batch_output):
         count = len(batch_input["idx"])
@@ -356,6 +356,23 @@ class CUSTOM(Task):
                             ]
                         ),
                 }
+            elif self.args.view_pretrain_obj != "none":
+                train_transform = eval_transform = {
+                    "image": transforms.Compose(
+                            [
+                                # rand_crop_image,
+                                col_jitter,
+                                rnd_gray,
+                                
+                                transforms.Resize((256,256), interpolation=2),
+                                transforms.ToTensor(),
+                                transforms.Normalize((0, 0, 0), (1,1,1)),
+                                # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                # normalize,
+                                # ToPatches(self.args.num_patches,self.args.view),
+                            ]
+                        ),
+                }
             else:
                 train_transform = eval_transform = {
                     "image": transforms.Compose(
@@ -389,19 +406,18 @@ class CUSTOM(Task):
                 }
 
         else:
-            train_transform = {
+            train_transform = eval_transform = {
                 "image": transforms.Compose(
                     [
                         transforms.Resize((256,256), interpolation=2),
                         transforms.ToTensor(),
                     ]
                 ),
-            }
-            eval_transform = {
-                "image": transforms.Compose(
+                "road": transforms.Compose(
                     [
+                        torchvision.transforms.ToPILImage(),
                         transforms.Resize((256,256), interpolation=2),
-                        transforms.ToTensor(), 
+                        transforms.ToTensor(),
                     ]
                 ),
             }

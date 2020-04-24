@@ -8,6 +8,9 @@ import itertools
 import numpy as np
 from itertools import permutations,combinations
 from torch.nn.modules.module import Module
+from utils import Anchors, BBoxTransform, ClipBoxes
+import losses
+
 
 OUT_BLOCK4_DIMENSION_DICT = {"resnet18": 512, "resnet34":512, "resnet50":2048, "resnet101":2048,
                               "resnet152":2048}
@@ -27,17 +30,11 @@ def get_base_model(name):
 
 def get_model(name, args):
     print(args.image_pretrain_obj, args.view_pretrain_obj)
-    if name == "selfie":
-        return SelfieModel(args)
-    # elif name == "selfie1":
-    #     return SelfieModel_revised(args)
-    
-    elif args.image_pretrain_obj != "none":
+    if args.image_pretrain_obj != "none":
         return ImageSSLModels(args)
-    elif args.view_pretrain_obj != "none":
-        return ViewSSLModels(args)
     else:
-        raise NotImplementedError
+        return ViewSSLModels(args)
+    
 
 def get_part_model(model,layer):
     if layer == "res1":
@@ -50,26 +47,6 @@ def get_part_model(model,layer):
         return model[:7]
     elif layer == "res5":
         return model
-
-def get_resize_dim(layer):
-    if layer == "res1":
-        return 12
-    elif layer == "res2":
-        return 6
-    elif layer == "res3":
-        return 4
-    elif layer == "res4":
-        return 3
-    elif layer == "res5":
-        return 2
-
-def flatten_dim(layer):
-    #task,layer = tasklayer.split("_")
-    
-    if layer == "res1" or layer == "res2" or layer == "res4":
-        return 9216
-    else:
-        return 8192
 
 class block(nn.Module):
     
@@ -467,6 +444,142 @@ class ImageSSLModels(JigsawModel):
 
         return batch_output 
 
+class PyramidFeatures(nn.Module):
+    def __init__(self, C3_size, C4_size, C5_size, feature_size=256):
+        super(PyramidFeatures, self).__init__()
+
+        # upsample C5 to get P5 from the FPN paper
+        self.P5_1 = nn.Conv2d(C5_size, feature_size, kernel_size=1, stride=1, padding=0)
+        self.P5_upsampled = nn.Upsample(scale_factor=2, mode='nearest')
+        self.P5_2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, stride=1, padding=1)
+
+        # add P5 elementwise to C4
+        self.P4_1 = nn.Conv2d(C4_size, feature_size, kernel_size=1, stride=1, padding=0)
+        self.P4_upsampled = nn.Upsample(scale_factor=2, mode='nearest')
+        self.P4_2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, stride=1, padding=1)
+
+        # add P4 elementwise to C3
+        self.P3_1 = nn.Conv2d(C3_size, feature_size, kernel_size=1, stride=1, padding=0)
+        self.P3_2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, stride=1, padding=1)
+
+        # "P6 is obtained via a 3x3 stride-2 conv on C5"
+        self.P6 = nn.Conv2d(C5_size, feature_size, kernel_size=3, stride=2, padding=1)
+
+        # "P7 is computed by applying ReLU followed by a 3x3 stride-2 conv on P6"
+        self.P7_1 = nn.ReLU()
+        self.P7_2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, stride=2, padding=1)
+
+    def forward(self, inputs):
+        C3, C4, C5 = inputs
+
+        P5_x = self.P5_1(C5)
+        P5_upsampled_x = self.P5_upsampled(P5_x)
+        P5_x = self.P5_2(P5_x)
+
+        P4_x = self.P4_1(C4)
+        P4_x = P5_upsampled_x + P4_x
+        P4_upsampled_x = self.P4_upsampled(P4_x)
+        P4_x = self.P4_2(P4_x)
+
+        P3_x = self.P3_1(C3)
+        P3_x = P3_x + P4_upsampled_x
+        P3_x = self.P3_2(P3_x)
+
+        P6_x = self.P6(C5)
+
+        P7_x = self.P7_1(P6_x)
+        P7_x = self.P7_2(P7_x)
+
+        return [P3_x, P4_x, P5_x, P6_x, P7_x]
+
+
+class RegressionModel(nn.Module):
+    def __init__(self, num_features_in, num_anchors=9, feature_size=256):
+        super(RegressionModel, self).__init__()
+
+        self.conv1 = nn.Conv2d(num_features_in, feature_size, kernel_size=3, padding=1)
+        self.act1 = nn.ReLU()
+
+        self.conv2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
+        self.act2 = nn.ReLU()
+
+        self.conv3 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
+        self.act3 = nn.ReLU()
+
+        self.conv4 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
+        self.act4 = nn.ReLU()
+
+        self.output = nn.Conv2d(feature_size, num_anchors * 4, kernel_size=3, padding=1)
+
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.act1(out)
+
+        out = self.conv2(out)
+        out = self.act2(out)
+
+        out = self.conv3(out)
+        out = self.act3(out)
+
+        out = self.conv4(out)
+        out = self.act4(out)
+
+        out = self.output(out)
+
+        # out is B x C x W x H, with C = 4*num_anchors
+        out = out.permute(0, 2, 3, 1)
+
+        return out.contiguous().view(out.shape[0], -1, 4)
+
+
+class ClassificationModel(nn.Module):
+    def __init__(self, num_features_in, num_anchors=9, num_classes=80, prior=0.01, feature_size=256):
+        super(ClassificationModel, self).__init__()
+
+        self.num_classes = num_classes
+        self.num_anchors = num_anchors
+
+        self.conv1 = nn.Conv2d(num_features_in, feature_size, kernel_size=3, padding=1)
+        self.act1 = nn.ReLU()
+
+        self.conv2 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
+        self.act2 = nn.ReLU()
+
+        self.conv3 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
+        self.act3 = nn.ReLU()
+
+        self.conv4 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
+        self.act4 = nn.ReLU()
+
+        self.output = nn.Conv2d(feature_size, num_anchors * num_classes, kernel_size=3, padding=1)
+        self.output_act = nn.Softmax(dim = 1)
+
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.act1(out)
+
+        out = self.conv2(out)
+        out = self.act2(out)
+
+        out = self.conv3(out)
+        out = self.act3(out)
+
+        out = self.conv4(out)
+        out = self.act4(out)
+
+        out = self.output(out)
+        out = self.output_act(out)
+
+        # out is B x C x W x H, with C = n_classes + n_anchors
+        out1 = out.permute(0, 2, 3, 1)
+
+        batch_size, width, height, channels = out1.shape
+
+        out2 = out1.view(batch_size, width, height, self.num_anchors, self.num_classes)
+
+        return out2.contiguous().view(x.shape[0], -1, self.num_classes)
+
+
 class ViewSSLModels(JigsawModel):
     def __init__(self, args):
         super().__init__(args)
@@ -476,29 +589,96 @@ class ViewSSLModels(JigsawModel):
         self.d_model = OUT_BLOCK4_DIMENSION_DICT[self.args.network_base]
 
         full_resnet = get_base_model(self.args.network_base)
-        self.image_network = nn.Sequential(
+
+        self.init_layers = nn.Sequential(
             full_resnet.conv1,
             full_resnet.bn1,
             full_resnet.relu,
             full_resnet.maxpool,
-            full_resnet.layer1,
-            full_resnet.layer2,
-            full_resnet.layer3,
-            full_resnet.layer4,
         )
+        self.block1 = full_resnet.layer1
+        self.block2 = full_resnet.layer2
+        self.block3 = full_resnet.layer3
+        self.block4 = full_resnet.layer4
+
+        self.image_network = nn.Sequential(
+            self.init_layers,
+            self.block1,
+            self.block2,
+            self.block3,
+            self.block4,
+        )
+
+        self.obj_detection_head = "retinanet"
+        self.num_classes = 9
+
+        self.gen_roadmap = True
+        self.detect_objects = False
+
+        if "retinanet" in self.obj_detection_head and self.detect_objects:
+            if "resnet18" in self.args.network_base or "resnet34" in self.args.network_base:
+                fpn_sizes = [self.block2[-1].conv2.out_channels, self.block3[-1].conv2.out_channels,
+                            self.block4[-1].conv2.out_channels]
+            else:
+                fpn_sizes = [self.block2[-1].conv3.out_channels, self.block3[-1].conv3.out_channels,
+                            self.block4[-1].conv3.out_channels]
+        
+            self.fpn = PyramidFeatures(fpn_sizes[0], fpn_sizes[1], fpn_sizes[2])
+
+            self.regressionModel = RegressionModel(256)
+            self.classificationModel = ClassificationModel(256, num_classes=self.num_classes)
+            
+            self.anchors = Anchors()
+
+            self.regressBoxes = BBoxTransform()
+
+            self.clipBoxes = ClipBoxes()
+
+            import losses
+
+            self.focalLoss = losses.FocalLoss()
+
+            prior = 0.01
+
+            self.classificationModel.output.weight.data.fill_(0)
+            self.classificationModel.output.bias.data.fill_(-math.log((1.0 - prior) / prior))
+
+            self.regressionModel.output.weight.data.fill_(0)
+            self.regressionModel.output.bias.data.fill_(0)
+
+            self.obj_detection_model = nn.Sequential(
+                self.fpn,
+                self.regressionModel,
+                self.classificationModel,
+            )
+
+
+        self.n_blobs = 3
+
+        self.channel_projections = nn.ModuleDict()
+        self.obj_detection_head = "retinanet"
 
         if self.d_model > 1024:
             self.max_f = 1024
         else:
             self.max_f = self.d_model
 
-        self.model_type = self.args.view_pretrain_obj.split("_")[0]
+        if self.args.view_pretrain_obj != "none":
+            self.model_type = self.args.view_pretrain_obj.split("_")[0]
+        else:
+            self.model_type = "var"
+
         self.input_dim = 256
 
         self.project_dim = 128
         self.mask_ninps = 1
 
-        self.reduce = nn.Conv2d((6-self.mask_ninps) * self.d_model, self.d_model, kernel_size = 1, stride = 1)
+        if self.stage=="pretrain":
+            self.reduce = nn.Conv2d((6-self.mask_ninps) * self.d_model, self.d_model, kernel_size = 1, stride = 1)
+        else:
+            self.reduce = nn.Conv2d(6 * self.d_model, self.d_model, kernel_size = 1, stride = 1)
+
+
 
         if self.model_type == "det":
 
@@ -518,15 +698,20 @@ class ViewSSLModels(JigsawModel):
                 init_layer_dim *= 2
                 init_channel_dim = init_channel_dim / 2
             
+            if self.stage != "pretrain":
+                out_dim = 1
+            else:
+                out_dim = 3
+
             decoder_network_layers.append(
-                block(int(init_channel_dim), 3, 3, 1, 1, "sigmoid", False, False),
+                block(int(init_channel_dim), out_dim, 3, 1, 1, "sigmoid", False, False),
             )
 
             self.decoder_network =  nn.Sequential(*decoder_network_layers)
 
             self.decoding = nn.Sequential(self.decoder_network, self.reduce)
 
-            self.loss_type = "mse"
+            self.loss_type = "bce"
 
         else:
             
@@ -544,9 +729,14 @@ class ViewSSLModels(JigsawModel):
                 init_layer_dim *= 2
                 init_channel_dim = init_channel_dim / 2
             
-            decoder_network_layers.append(
-                block(int(init_channel_dim), 3, 3, 1, 1, "tanh", False, False),
-            )
+            if self.stage=="pretrain":
+                decoder_network_layers.append(
+                    block(int(init_channel_dim), 3, 3, 1, 1, "tanh", False, False),
+                )
+            else:
+                decoder_network_layers.append(
+                    block(int(init_channel_dim), 1, 3, 1, 1, "sigmoid", False, False),
+                )
 
             self.decoder_network = nn.Sequential(*decoder_network_layers)
 
@@ -577,15 +767,43 @@ class ViewSSLModels(JigsawModel):
             self.synthesizer,
             self.decoding,
             )
+
+            if self.detect_objects:
+                self.finetune_network = nn.Sequential(
+                    self.image_network,
+                    self.synthesizer,
+                    self.decoding,
+                    self.obj_detection_model,
+                    )
+
+            else:
+                self.finetune_network = nn.Sequential(
+                self.image_network,
+                self.synthesizer,
+                self.decoding,
+                )
         else:
             self.pretrain_network = nn.Sequential(
             self.image_network,
             self.decoding,
             )
 
-        self.fusion = self.args.view_fusion_strategy
+            if self.detect_objects:
+                self.finetune_network = nn.Sequential(
+                    self.image_network,
+                    self.decoding,
+                    self.obj_detection_model,
+                    )
+
+            else:
+                self.finetune_network = n.Sequential(
+                self.image_network,
+                self.decoding,
+                )
 
         
+
+        self.fusion = self.args.view_fusion_strategy
 
         self.dropout = torch.nn.Dropout(p=0.5, inplace=False)
 
@@ -600,35 +818,13 @@ class ViewSSLModels(JigsawModel):
         # self.beta_wt = self.args.beta_ema
         self.det_fusion_strategy = "concat_fuse"
         assert self.det_fusion_strategy in ["concat_fuse", "mean"]
-
-        self.cls_classifiers = nn.ModuleDict()
-
-        from tasks import task_num_class
-
-        self.linear = False
-        for taskname in args.finetune_tasks:
-            name = taskname.split("_")[0]
-            #tasklayer = "_".join([taskname.split("_")[0],taskname.split("_")[2]])
-            #layer = taskname.split("_")[2]
-            
-            if len(taskname.split("_")) > 2 and taskname.split("_")[2]!="none":
-                self.linear = True
-                tasklayer = "_".join([taskname.split("_")[0],taskname.split("_")[2]])
-                layer = taskname.split("_")[2]
-                for layer in (taskname.split("_")[2:]):
-                    print(tasklayer,flatten_dim(layer))
-                    self.cls_classifiers[tasklayer] = nn.Linear(flatten_dim(layer), task_num_class(name))
-                    self.resize_dim[layer] = get_resize_dim(layer)
-            else:
-                self.cls_classifiers[taskname.split("_")[0]] = nn.Linear(self.f_model, task_num_class(name))
-
         
 
         self.sigmoid = nn.Sigmoid()
-        self.shared_params = list(self.pretrain_network.parameters())
+        self.pretrain_params = list(self.pretrain_network.parameters())
         #self.shared_params += list(self.attention_pooling.parameters())
         # self.pretrain_params = list(self.reduce.parameters()) + list(self.project1.parameters()) + list(self.project2.parameters())
-        self.finetune_params = list(self.cls_classifiers.parameters())
+        self.finetune_params = list(self.finetune_network.parameters())
 
     def reparameterize(self, mu, logvar):
 
@@ -639,6 +835,18 @@ class ViewSSLModels(JigsawModel):
         else:
             return mu
 
+    def get_blobs(self, x):
+        x = self.init_layers(x)
+        x1 = self.block1(x)
+        x2 = self.block2(x1)
+        x3 = self.block3(x2)
+        x4 = self.block4(x3)
+
+        layers = [x1,x2,x3,x4]
+
+        return layers[-self.n_blobs:]
+    
+
     def forward(self, batch_input, task=None):
         batch_output = {}
         
@@ -648,81 +856,198 @@ class ViewSSLModels(JigsawModel):
         bs = index.size(0)
         self.batch_size = bs
 
-        if "masked_autoencoder" in self.args.view_pretrain_obj:
-            mask = torch.cat([torch.arange(6)+1 for i in range(bs)]).view(bs,6)
-            mask_indices = mask.clone()
-            
+        if self.stage == "pretrain":
+
+            if "masked" in self.args.view_pretrain_obj or "denoising" in self.args.view_pretrain_obj:
+                mask = torch.cat([torch.arange(6)+1 for i in range(bs)]).view(bs,6)
+                mask_indices = mask.clone()
+                
+                query_views = batch_input["image"]
+                if "masked" in self.args.view_pretrain_obj:
+                    key_views = torch.zeros(bs,self.mask_inps,3,self.input_dim,self.input_dim)
+                else:
+                    key_views = batch_input["image"]
+
+                for index in range(bs):
+                    mask = torch.arange(6) + 1
+                    mask[np.random.choice(6,self.mask_ninps)] = 0
+                    mask_indices = torch.arange(6) + 1
+
+                    neg_mask = mask_indices[(mask==0).nonzero()].view(-1)-1
+                    # print(pos_mask)
+                    # print(neg_mask)
+                    if "masked" in self.args.view_pretrain_obj:
+                        key_views[index] = query_views[index,neg_mask]
+
+                    query_views[index,neg_mask] = 0
+                    # key_view[index] = views[index,neg_mask]
+
+                print(query_views.shape)
+
+
+            else:
+                query_views = batch_input["image"]
+                key_views = batch_input["image"]
+
+            views = self.image_network(query_views.flatten(0,1))
+            _,c,h,w = views.shape
+            views = views.view(bs,6,c,h,w)
+            print(views.shape)
+
+            if self.det_fusion_strategy == "concat_fuse":
+                fusion = self.reduce(views.flatten(1,2))
+
+            elif self.det_fusion_strategy == "mean":
+                fusion = views.mean(dim=1)
+
+            if self.n_synthesize > 0:
+                fusion = self.synthesizer(fusion)
+
+            if "det" in self.model_type:
+                if "masked" in self.args.view_pretrain_obj:
+
+                    mapped_image = torch.zeros(bs,self.mask_ninps,3,self.input_dim, self.input_dim)
+                    for i in range(self.mask_ninps):
+                        mapped_image[i] = self.decoder_network(fusion)
+
+                    print(mapped_image.shape, key_views.shape)
+
+                    batch_output["loss"] = self.criterion(mapped_image, key_views)
+                    
+                    batch_output["acc"] = (mapped_image == key_visews).float().mean()
+
+                elif "denoising" in self.args.view_pretrain_obj:
+
+                    mapped_image = torch.zeros(batch_input["input"].shape)
+
+                    for i in range(6):
+                        mapped_image[i] = self.decoder_network(fusion)
+
+                    print(mapped_image.shape, key_views.shape)
+
+                    batch_output["loss"] = self.criterion(mapped_image, key_views)
+                    
+                    batch_output["acc"] = (mapped_image == key_views).float().mean()
+
+            else:
+
+                fusion = self.avg_pool(fusion).view(bs,self.d_model)
+
+                mu_logvar = self.z_project(fusion).view(bs,2,-1)
+
+                mu = mu_logvar[:,0]
+                logvar = mu_logvar[:,1]
+
+                z = self.reparameterize(mu,logvar).view(bs,self.project_dim,1,1)
+
+                generated_image = self.decoder_network(z)
+                # print(generated_image.shape, mu.shape, logvar.shape)
+
+                reconstruction_loss = self.criterion(generated_image, key_view)
+                kl_divergence_loss = 0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2))
+
+                batch_output["loss"] = reconstruction_loss + kl_divergence_loss
+                batch_output["recon_loss"] = reconstruction_loss
+                batch_output["KLD_loss"] = kl_divergence_loss
+                batch_output["acc"] = (generated_image == key_view).float().mean()
+
+            return batch_output
+
+        else:
             views = batch_input["image"]
+            road_map = batch_input["road"]
+            annotations = batch_input["bbox"]
 
-            query_views = torch.zeros(bs, 6 - self.mask_ninps, 3, self.input_dim, self.input_dim)
-            key_view = torch.zeros(bs, self.mask_ninps, 3, self.input_dim, self.input_dim)
-            for index in range(bs):
-                mask = torch.arange(6) + 1
-                mask[np.random.choice(6,self.mask_ninps)] = 0
-                mask_indices = torch.arange(6) + 1
+            layers = self.get_blobs(views.flatten(0,1))
 
-                pos_mask = mask_indices[(mask!=0).nonzero()].view(-1)-1
-                neg_mask = mask_indices[(mask==0).nonzero()].view(-1)-1
-                # print(pos_mask)
-                # print(neg_mask)
-                query_views[index] = views[index,pos_mask]
-                key_view[index] = views[index,neg_mask]
+            final_features = layers[-1]
+            print(final_features.shape)
+            _,c,h,w = final_features.shape
+            views = final_features.view(bs,6,c,h,w)
 
-            key_view = key_view.flatten(0,1)
-            print(key_view.shape)
-            print(query_views.shape)
+            if self.det_fusion_strategy == "concat_fuse":
+                fusion = self.reduce(views.flatten(1,2))
 
-        else:
-            query_views = batch_input["image"]
+            elif self.det_fusion_strategy == "mean":
+                fusion = views.mean(dim=1)
 
-        views = self.image_network(query_views.flatten(0,1))
-        _,c,h,w = views.shape
-        views = views.view(bs,6 - self.mask_ninps,c,h,w)
-        print(views.shape)
+            if self.n_synthesize > 0:
+                fusion = self.synthesizer(fusion)
 
-        if self.det_fusion_strategy == "concat_fuse":
-            fusion = self.reduce(views.flatten(1,2))
-
-        elif self.det_fusion_strategy == "mean":
-            fusion = views.mean(dim=1)
-
-        if self.n_synthesize > 0:
-            fusion = self.synthesizer(fusion)
-
-        if "det" in self.model_type:
-
-            mapped_image = self.decoder_network(fusion)
-            print(mapped_image.shape, key_view.shape)
-
-            batch_output["loss"] = self.criterion(mapped_image, key_view)
+            batch_output["loss"] = 0
             
-            batch_output["acc"] = (mapped_image == key_view).float().mean()
+            if self.gen_roadmap:
 
-        else:
+                if "det" in self.model_type:
 
-            fusion = self.avg_pool(fusion).view(bs,self.d_model)
+                    mapped_image = self.decoder_network(fusion)
+                    print(mapped_image.shape,road_map.shape)
 
-            mu_logvar = self.z_project(fusion).view(bs,2,-1)
+                    batch_output["recon_loss"] = self.criterion(mapped_image, road_map)
+                    
+                    batch_output["acc"] = (mapped_image == road_map).float().mean()
+                    batch_output["loss"] += batch_output["recon_loss"]
 
-            mu = mu_logvar[:,0]
-            logvar = mu_logvar[:,1]
+                else:
 
-            z = self.reparameterize(mu,logvar).view(bs,self.project_dim,1,1)
+                    fusion = self.avg_pool(fusion).view(bs,self.d_model)
 
-            generated_image = self.decoder_network(z)
-            print(generated_image.shape, mu.shape, logvar.shape)
+                    mu_logvar = self.z_project(fusion).view(bs,2,-1)
 
-            reconstruction_loss = self.criterion(generated_image, key_view)
-            kl_divergence_loss = 0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2))
+                    mu = mu_logvar[:,0]
+                    logvar = mu_logvar[:,1]
 
-            batch_output["loss"] = reconstruction_loss + kl_divergence_loss
-            batch_output["recon_loss"] = reconstruction_loss
-            batch_output["KLD_loss"] = kl_divergence_loss
-            batch_output["acc"] = (generated_image == key_view).float().mean()
+                    z = self.reparameterize(mu,logvar).view(bs,self.project_dim,1,1)
 
-        return batch_output
+                    generated_image = self.decoder_network(z)
+                    print(generated_image.shape, mu.shape, logvar.shape)
 
-       
+                    reconstruction_loss = self.criterion(generated_image, road_map)
+                    kl_divergence_loss = 0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2))
+
+                    batch_output["recon_loss"] = reconstruction_loss
+                    batch_output["KLD_loss"] = kl_divergence_loss
+                    batch_output["acc"] = (generated_image == road_map).float().mean()
+                    batch_output["loss"] += batch_output["recon_loss"] + batch_output["KLD_loss"]
+
+            if self.detect_objects:
+
+                features = self.fpn(layers)
+
+                regression = torch.cat([self.regressionModel(feature) for feature in features], dim=1)
+
+                classification = torch.cat([self.classificationModel(feature) for feature in features], dim=1)
+
+                anchors = self.anchors(img_batch)
+
+                if self.training:
+                    batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
+                    batch_output["loss"] += batch_output["classification_loss"] + batch_output["detection_loss"]
+                else:
+                    transformed_anchors = self.regressBoxes(anchors, regression)
+                    transformed_anchors = self.clipBoxes(transformed_anchors, img_batch)
+
+                    scores = torch.max(classification, dim=2, keepdim=True)[0]
+
+                    scores_over_thresh = (scores > 0.05)[0, :, 0]
+
+                    if scores_over_thresh.sum() == 0:
+                        # no boxes to NMS, just return
+                        return [torch.zeros(0), torch.zeros(0), torch.zeros(0, 4)]
+
+                    classification = classification[:, scores_over_thresh, :]
+                    transformed_anchors = transformed_anchors[:, scores_over_thresh, :]
+                    scores = scores[:, scores_over_thresh, :]
+
+                    anchors_nms_idx = nms(transformed_anchors[0,:,:], scores[0,:,0], 0.5)
+
+                    nms_scores, nms_class = classification[0, anchors_nms_idx, :].max(dim=1)
+
+                    # return [nms_scores, nms_class, transformed_anchors[0, anchors_nms_idx, :]]
+            return batch_output
+
+
+        
 
 
 

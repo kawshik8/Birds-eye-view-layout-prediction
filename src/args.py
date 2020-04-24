@@ -35,7 +35,7 @@ parser.add_argument(
     "--view-pretrain-obj",
     type=str,
     default=None,
-    choices=["det_masked_autoencoder","var_masked_autoencoder","adv_masked_autoencoder", "nce_loss", "infonce_loss"],
+    choices=["det_masked_autoencoder","var_masked_autoencoder","adv_masked_autoencoder", "nce_loss", "infonce_loss","none"],
     help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
 
@@ -69,7 +69,7 @@ parser.add_argument(
 parser.add_argument(
     "--finetune-tasks",
     type=str,
-    default="none",
+    default="custom_sup",
     help="""any non-empty subset from ['cifar10', 'mnist', 'imagenet'] x ['_lp5', '_lp10', '_lp20', '_lp100'] 
     (percent of labels available) x ["_res1", "_res2", "_res3", "_res4", "_res5"] 
     dont mention the layer in case of finetuning the whole layer
