@@ -18,7 +18,12 @@ parser.add_argument(
 )
 # data_dir
 parser.add_argument(
-    "--data-dir", type=str, default="/scratch/hl3236/data/", help="directory of the data files",
+    "--data-dir", type=str, default="./data/", help="directory of the data files",
+)
+
+# image_folder
+parser.add_argument(
+    "--image-folder", type=str, default="../../../data/data/", help="directory of the custom dataset files",
 )
 
 

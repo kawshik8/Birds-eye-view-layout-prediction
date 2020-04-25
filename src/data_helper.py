@@ -46,7 +46,7 @@ class UnlabeledDataset(torch.utils.data.Dataset):
             transform (Transform): The function to process the image
         """
         self.args = args
-        self.image_folder = "../../../data/data/"
+        self.image_folder = self.args.image_folder
         self.scene_index = scene_index
         self.transform = transform
         self.first_dim = self.args.sampling_type
@@ -108,7 +108,7 @@ class LabeledDataset(torch.utils.data.Dataset):
         """
 
         self.args = args
-        self.image_folder = "../../../data/data/"
+        self.image_folder = self.args.image_folder
         annotation_file = os.path.join(self.image_folder,"annotation.csv")
         self.annotation_dataframe = pd.read_csv(annotation_file)
         self.scene_index = scene_index
