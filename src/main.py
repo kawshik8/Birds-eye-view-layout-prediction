@@ -27,13 +27,14 @@ def main(args):
         task.load_data()
 
     log.info("Start creating models")
-    if args.image_pretrain_obj != "none":
-        image_ssl_model = get_model("image_ssl", args)
-        log.info("Loaded image ssl model")
+    if len(pretrain_task):
+        if args.image_pretrain_obj != "none":
+            image_ssl_model = get_model("image_ssl", args)
+            log.info("Loaded image ssl model")
 
-    if args.view_pretrain_obj != "none":
-        view_ssl_model = get_model("view_ssl", args)
-        log.info("Loaded view ssl model")
+        if args.view_pretrain_obj != "none":
+            view_ssl_model = get_model("view_ssl", args)
+            log.info("Loaded view ssl model")
 
     if args.finetune_obj != "none": 
         sup_model = get_model("sup", args)

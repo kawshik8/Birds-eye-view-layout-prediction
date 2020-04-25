@@ -31,7 +31,7 @@ parser.add_argument(
 parser.add_argument(
     "--image-pretrain-obj",
     type=str,
-    default="pirl_nce_loss",
+    default=None,#"pirl_nce_loss",
     choices=["pirl_nce_loss", "pirl_infonce_loss", "multilabel_loss","none"],
     help="pretrain image based task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
@@ -247,6 +247,7 @@ parser.add_argument(
     default=0,
     help="finetune mandatory saving interval, set to 0 to disable",
 )
+
 # transfer-paradigm
 parser.add_argument(
     "--transfer-paradigm",

@@ -188,10 +188,10 @@ class Task(object):
         self.data_iterators = {}
         self.reset_scorers()
         self.path = os.path.join(args.data_dir, self.name.split("_")[0])
-        if pretrain:
-            self.eval_metric = "acc"
-        else:
-            self.eval_metric = "cls_acc"
+        # if pretrain:
+        #     self.eval_metric = "acc"
+        # else:
+        self.eval_metric = "acc"
 
     def _get_transforms(self):
         """
@@ -254,9 +254,8 @@ class Task(object):
         load data, create data iterators. use cached data when available.
         """
         log.info("Loading %s data" % self.name)
-        start = time.time()
+
         data = self._load_raw_data()
-        print("load raw data", time.time()-start)
         # start = time.time()
         # data = self._preprocess_data(data)
         # print("preprocess", time.time()-start)
@@ -271,7 +270,6 @@ class Task(object):
         #     data["test"] = TransformDataset(eval_transform, data["test"])
         # print("transform", time.time()-start)
 
-        start = time.time()
 
         for split, dataset in data.items():
             self.data_iterators[split] = torch.utils.data.DataLoader(
@@ -282,7 +280,6 @@ class Task(object):
                 drop_last=(split == "train"),
                 num_workers=self.args.num_workers,
             )
-        print("dataloader", time.time()-start)
 
 
     def reset_scorers(self):

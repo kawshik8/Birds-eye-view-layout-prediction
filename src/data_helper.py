@@ -147,6 +147,8 @@ class LabeledDataset(torch.utils.data.Dataset):
         # print(bbox.shape, bounding_box.shape)
         bbox[:, 0:2] = bounding_box[:, 4:6]
         bbox[:, 2:4] = bounding_box[:, 2:4]
+        bbox = (bbox*10) + 400
+        bbox = (bbox * 256)/800
 
         # print(scene_id, sample_id, bounding_box.shape)
         classes = torch.as_tensor(categories).view(-1, 1)

@@ -6,11 +6,14 @@ import torch.optim as optim
 import torchvision.models.resnet as resnet
 import itertools
 import numpy as np
+from torchvision.ops import nms
 from itertools import permutations,combinations
 from torch.nn.modules.module import Module
 from utils import Anchors, BBoxTransform, ClipBoxes, block, Resblock
 import losses
 import math
+import logging as log
+
 
 
 OUT_BLOCK4_DIMENSION_DICT = {"resnet18": 512, "resnet34":512, "resnet50":2048, "resnet101":2048,
@@ -600,22 +603,26 @@ class ViewGenModels(ViewModel):
 
             anchors = self.anchors(batch_input["image"].flatten(0,1))
 
-            if self.training:
-                # print(classes.shape, annotations.shape)
-                # print(anchors.shape, classification.shape, regression.shape, annotations.shape)
-                batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
-                batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
-            else:
+            # print(classification.shape, regression.shape, anchors.shape, annotations.shape)
+            batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
+            batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
+            # print(batch_output["loss"].shape)
+
+            if not self.training:
+
+                # print(anchors.shape,regression.shape)
                 transformed_anchors = self.regressBoxes(anchors, regression)
-                transformed_anchors = self.clipBoxes(transformed_anchors, img_batch)
+                # print(transformed_anchors.shape)
+                transformed_anchors = self.clipBoxes(transformed_anchors, batch_input["image"].flatten(0,1))
 
                 scores = torch.max(classification, dim=2, keepdim=True)[0]
 
                 scores_over_thresh = (scores > 0.05)[0, :, 0]
 
                 if scores_over_thresh.sum() == 0:
+                    log.info("0 class predictions above threshold score (0.05)")
+                    return batch_output
                     # no boxes to NMS, just return
-                    return [torch.zeros(0), torch.zeros(0), torch.zeros(0, 4)]
 
                 classification = classification[:, scores_over_thresh, :]
                 transformed_anchors = transformed_anchors[:, scores_over_thresh, :]
@@ -623,7 +630,10 @@ class ViewGenModels(ViewModel):
 
                 anchors_nms_idx = nms(transformed_anchors[0,:,:], scores[0,:,0], 0.5)
 
+                # print(classification.shape, classification[0, anchors_nms_idx, :].shape)
                 nms_scores, nms_class = classification[0, anchors_nms_idx, :].max(dim=1)
+                # print(nms_scores,nms_class.shape,transformed_anchors[0, anchors_nms_idx, :].shape)
 
                 # return [nms_scores, nms_class, transformed_anchors[0, anchors_nms_idx, :]]
+
         return batch_output
