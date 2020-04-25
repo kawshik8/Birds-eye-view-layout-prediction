@@ -190,6 +190,9 @@ class ClassificationModel(nn.Module):
         out = self.output(out)
         out = self.output_act(out)
 
+        # b,c,h,w = out.shape
+        # out = self.output_act(out.view(b, self.num_classes, self.num_anchors, h, w)).flatten(1,2)
+
         if not self.fused:
             b,c,w,h = out.shape
             out = out.view(-1, 6, c, w, h).flatten(1,2)
@@ -603,10 +606,11 @@ class ViewGenModels(ViewModel):
 
             anchors = self.anchors(batch_input["image"].flatten(0,1))
 
-            # print(classification.shape, regression.shape, anchors.shape, annotations.shape)
+            # if self.training:
+                # print(classification.shape, regression.shape, anchors.shape, annotations.shape)
             batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
             batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
-            # print(batch_output["loss"].shape)
+                # print(batch_output["loss"].shape)
 
             if not self.training:
 
@@ -620,7 +624,9 @@ class ViewGenModels(ViewModel):
                 scores_over_thresh = (scores > 0.05)[0, :, 0]
 
                 if scores_over_thresh.sum() == 0:
-                    log.info("0 class predictions above threshold score (0.05)")
+                    # batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
+                    # batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
+
                     return batch_output
                     # no boxes to NMS, just return
 
@@ -632,7 +638,6 @@ class ViewGenModels(ViewModel):
 
                 # print(classification.shape, classification[0, anchors_nms_idx, :].shape)
                 nms_scores, nms_class = classification[0, anchors_nms_idx, :].max(dim=1)
-                # print(nms_scores,nms_class.shape,transformed_anchors[0, anchors_nms_idx, :].shape)
 
                 # return [nms_scores, nms_class, transformed_anchors[0, anchors_nms_idx, :]]
 
