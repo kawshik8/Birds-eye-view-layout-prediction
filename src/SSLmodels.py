@@ -31,7 +31,7 @@ def get_base_model(name):
 
 
 def get_model(name, args):
-    print(args.image_pretrain_obj, args.view_pretrain_obj)
+    # print(args.image_pretrain_obj, args.view_pretrain_obj)
     if name == "image_ssl":
         return ImageSSLModels(args)
     elif name == "view_ssl":
@@ -138,7 +138,7 @@ class ImageSSLModels(SSLModel):
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1,1))
 
-        self.project_dim = 128
+        self.project_dim = self.args.project_dim
 
         self.reduce = nn.Linear(self.num_patches*self.d_model, self.d_model)
         self.project1 = nn.Linear(self.d_model, self.project_dim)
@@ -320,7 +320,7 @@ class ViewSSLModels(SSLModel):
 
         self.input_dim = 256
 
-        self.project_dim = 128
+        self.latent_dim = self.args.latent_dim
         self.mask_ninps = 1
 
         self.reduce = nn.Conv2d(6 * self.d_model, self.d_model, kernel_size = 1, stride = 1)
@@ -362,7 +362,7 @@ class ViewSSLModels(SSLModel):
             
             decoder_network_layers = []
             decoder_network_layers.append(
-                block(int(self.project_dim), int(self.max_f), 4, 1, 0, "leakyrelu"),
+                block(int(self.latent_dim), int(self.max_f), 4, 1, 0, "leakyrelu"),
             )
             
             init_layer_dim = 4
@@ -385,7 +385,7 @@ class ViewSSLModels(SSLModel):
 
             self.decoder_network = nn.Sequential(*decoder_network_layers)
 
-            self.z_project = nn.Linear(self.d_model, 2*self.project_dim)
+            self.z_project = nn.Linear(self.d_model, 2*self.latent_dim)
             # self.reduce = nn.Linear((6-self.mask_ninps) * self.d_model, self.d_model)
             self.decoding = nn.Sequential(self.decoder_network, self.z_project)
 
@@ -458,7 +458,7 @@ class ViewSSLModels(SSLModel):
                 # print(pos_mask)
                 # print(neg_mask)
                 if "masked" in self.args.view_pretrain_obj:
-                    print(query_views[index,neg_mask].shape)
+                    # print(query_views[index,neg_mask].shape)
                     key_views[index] = query_views[index,neg_mask]
 
                 query_views[index,neg_mask] = 0
@@ -513,7 +513,7 @@ class ViewSSLModels(SSLModel):
             mu = mu_logvar[:,0]
             logvar = mu_logvar[:,1]
 
-            z = self.reparameterize(mu,logvar).view(bs,self.project_dim,1,1)
+            z = self.reparameterize(mu,logvar).view(bs,self.latent_dim,1,1)
 
             generated_image = self.decoder_network(z)
             # print(generated_image.shape, mu.shape, logvar.shape)

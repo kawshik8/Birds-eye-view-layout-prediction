@@ -37,11 +37,11 @@ class PyramidFeatures(nn.Module):
     def __init__(self, C3_size, C4_size, C5_size, feature_size=256, fusion_strategy=None):
         super(PyramidFeatures, self).__init__()
 
-        # self.fusion_strategy = fusion_strategy
-        # if self.fusion_strategy:
-        #     self.fuse1 = nn.Conv2d(6*C3_size,C3_size, kernel_size = 1, stride = 1, padding = 0)
-        #     self.fuse2 = nn.Conv2d(6*C4_size,C4_size, kernel_size = 1, stride = 1, padding = 0)
-        #     self.fuse3 = nn.Conv2d(6*C5_size,C5_size, kernel_size = 1, stride = 1, padding = 0)
+        self.fusion_strategy = fusion_strategy
+        if self.fusion_strategy:
+            self.fuse1 = nn.Conv2d(6*C3_size,C3_size, kernel_size = 1, stride = 1, padding = 0)
+            self.fuse2 = nn.Conv2d(6*C4_size,C4_size, kernel_size = 1, stride = 1, padding = 0)
+            self.fuse3 = nn.Conv2d(6*C5_size,C5_size, kernel_size = 1, stride = 1, padding = 0)
 
         # upsample C5 to get P5 from the FPN paper
         self.P5_1 = nn.Conv2d(C5_size, feature_size, kernel_size=1, stride=1, padding=0)
@@ -67,13 +67,18 @@ class PyramidFeatures(nn.Module):
     def forward(self, inputs):
         C3, C4, C5 = inputs
 
-        # if self.fusion_strategy is not None:
-        #     b,c,h,w = C3.shape
-        #     C3 = self.fuse1(C3.view(-1,6,c,h,w).flatten(1,2))
-        #     b,c,h,w = C4.shape
-        #     C4 = self.fuse2(C4.view(-1,6,c,h,w).flatten(1,2))
-        #     b,c,h,w = C5.shape
-        #     C5 = self.fuse3(C5.view(-1,6,c,h,w).flatten(1,2))
+        # print("C3,C4,C5", C3.shape,C4.shape,C5.shape)
+
+        if self.fusion_strategy is not None:
+            
+            b,c,h,w = C3.shape
+            C3 = self.fuse1(C3.view(-1,6,c,h,w).flatten(1,2))
+            b,c,h,w = C4.shape
+            C4 = self.fuse2(C4.view(-1,6,c,h,w).flatten(1,2))
+            b,c,h,w = C5.shape
+            C5 = self.fuse3(C5.view(-1,6,c,h,w).flatten(1,2))
+
+        # print("c3,c4,c5", C3.shape,C4.shape,C5.shape)
 
         P5_x = self.P5_1(C5)
         P5_upsampled_x = self.P5_upsampled(P5_x)
@@ -97,9 +102,10 @@ class PyramidFeatures(nn.Module):
 
 
 class RegressionModel(nn.Module):
-    def __init__(self, num_features_in, num_anchors=9, feature_size=256):
+    def __init__(self, num_features_in, fused, num_anchors=9, feature_size=256):
         super(RegressionModel, self).__init__()
 
+        self.fused = not fused 
         self.conv1 = nn.Conv2d(num_features_in, feature_size, kernel_size=3, padding=1)
         self.act1 = nn.ReLU()
 
@@ -129,8 +135,11 @@ class RegressionModel(nn.Module):
 
         out = self.output(out)
 
-        # print("final", out.shape, "input", x.shape)
+        if not self.fused:
+            b,c,w,h = out.shape
+            out = out.view(-1, 6, c, w, h).flatten(1,2)
 
+        # print("finalr", out.shape, "inputr", x.shape)
         # out is B x C x W x H, with C = 4*num_anchors
         out = out.permute(0, 2, 3, 1)
 
@@ -140,11 +149,12 @@ class RegressionModel(nn.Module):
 
 
 class ClassificationModel(nn.Module):
-    def __init__(self, num_features_in, num_anchors=9, num_classes=9, prior=0.01, feature_size=256):
+    def __init__(self, num_features_in, fused, num_anchors=9, num_classes=9, prior=0.01, feature_size=256):
         super(ClassificationModel, self).__init__()
 
         self.num_classes = num_classes
         self.num_anchors = num_anchors
+        self.fused = not fused
 
         self.conv1 = nn.Conv2d(num_features_in, feature_size, kernel_size=3, padding=1)
         self.act1 = nn.ReLU()
@@ -177,8 +187,12 @@ class ClassificationModel(nn.Module):
         out = self.output(out)
         out = self.output_act(out)
 
+        if not self.fused:
+            b,c,w,h = out.shape
+            out = out.view(-1, 6, c, w, h).flatten(1,2)
+
         # out is B x C x W x H, with C = n_classes + n_anchors
-        # print("final", out.shape, "input", x.shape)
+        # print("finalc", out.shape, "inputc", x.shape)
 
         out1 = out.permute(0, 2, 3, 1)
 
@@ -186,9 +200,13 @@ class ClassificationModel(nn.Module):
 
         batch_size, width, height, channels = out1.shape
 
-        out2 = out1.view(batch_size, width, height, self.num_anchors, self.num_classes)
+        if not self.fused:
+            out2 = out1.view(batch_size, width, height, self.num_anchors*6, self.num_classes)
+        else:
+            out2 = out1.view(batch_size, width, height, self.num_anchors, self.num_classes)
 
-        return out2.contiguous().view(x.shape[0], -1, self.num_classes)
+        # print(out2.contiguous().view(batch_size, -1, self.num_classes).shape)
+        return out2.contiguous().view(batch_size, -1, self.num_classes)
 
 class ViewModel(nn.Module):
     def __init__(self, args):
@@ -272,6 +290,7 @@ class ViewGenModels(ViewModel):
         self.fusion = self.args.view_fusion_strategy
 
         self.n_blobs = 3
+        
 
         self.channel_projections = nn.ModuleDict()
         self.obj_detection_head = "retinanet"
@@ -320,9 +339,10 @@ class ViewGenModels(ViewModel):
 
         else:
             
+            self.latent_dim = self.args.latent_dim
             decoder_network_layers = []
             decoder_network_layers.append(
-                block(int(self.project_dim), int(self.max_f), 4, 1, 0, "leakyrelu"),
+                block(int(self.latent_dim), int(self.max_f), 4, 1, 0, "leakyrelu"),
             )
             
             init_layer_dim = 4
@@ -341,7 +361,7 @@ class ViewGenModels(ViewModel):
 
             self.decoder_network = nn.Sequential(*decoder_network_layers)
 
-            self.z_project = nn.Linear(self.d_model, 2*self.project_dim)
+            self.z_project = nn.Linear(self.d_model, 2*self.latent_dim)
             # self.reduce = nn.Linear((6-self.mask_ninps) * self.d_model, self.d_model)
             self.decoding = nn.Sequential(self.decoder_network, self.z_project, self.reduce)
 
@@ -376,20 +396,34 @@ class ViewGenModels(ViewModel):
             self.decoding,
             )
 
+        self.blobs_strategy = self.args.blobs_strategy
         
         if "retinanet" in self.obj_detection_head and self.detect_objects:
-            # if "resnet18" in self.args.network_base or "resnet34" in self.args.network_base:
-            #     fpn_sizes = [self.block2[-1].conv2.out_channels, self.block3[-1].conv2.out_channels,
-            #                 self.block4[-1].conv2.out_channels]
-            # else:
-            #     fpn_sizes = [self.block2[-1].conv3.out_channels, self.block3[-1].conv3.out_channels,
-            #                 self.block4[-1].conv3.out_channels]
-            fpn_sizes = [self.decoder_network[1].conv.out_channels, self.decoder_network[0].conv.out_channels, self.synthesizer[-1].conv.out_channels ]
-        
-            self.fpn = PyramidFeatures(fpn_sizes[0], fpn_sizes[1], fpn_sizes[2], fusion_strategy = self.fusion)
 
-            self.regressionModel = RegressionModel(256)
-            self.classificationModel = ClassificationModel(256, num_classes=self.num_classes)
+            if "encoder" in self.blobs_strategy:
+                if "resnet18" in self.args.network_base or "resnet34" in self.args.network_base:
+                    fpn_sizes = [self.block2[-1].conv2.out_channels, self.block3[-1].conv2.out_channels,
+                                self.block4[-1].conv2.out_channels]
+                else:
+                    fpn_sizes = [self.block2[-1].conv3.out_channels, self.block3[-1].conv3.out_channels,
+                                self.block4[-1].conv3.out_channels]
+
+            elif "decoder" in self.blobs_strategy:
+                if "var" in self.model_type:
+                    fpn_sizes = [self.decoder_network[3].conv.out_channels, self.decoder_network[2].conv.out_channels, self.decoder_network[1].conv.out_channels]
+                else:
+                    fpn_sizes = [self.decoder_network[1].conv.out_channels, self.decoder_network[0].conv.out_channels, self.synthesizer[-1].conv.out_channels ]
+
+
+            if "encoder" in self.blobs_strategy and "fused" in self.blobs_strategy:
+                self.fpn = PyramidFeatures(fpn_sizes[0], fpn_sizes[1], fpn_sizes[2], fusion_strategy = "fused")
+            else:
+                self.fpn = PyramidFeatures(fpn_sizes[0], fpn_sizes[1], fpn_sizes[2])
+    
+            self.dynamic_strategy = ("fused" not in self.blobs_strategy and "encoder" in self.blobs_strategy)
+            # print("dynamic strat", self.dynamic_strategy)
+            self.regressionModel = RegressionModel(256, self.dynamic_strategy)
+            self.classificationModel = ClassificationModel(256, self.dynamic_strategy)
             
             self.anchors = Anchors()
 
@@ -399,7 +433,7 @@ class ViewGenModels(ViewModel):
 
             import losses
 
-            self.focalLoss = losses.FocalLoss()
+            self.focalLoss = losses.FocalLoss(self.dynamic_strategy)
 
             prior = 0.01
 
@@ -421,7 +455,7 @@ class ViewGenModels(ViewModel):
         # self.use_memory_bank = True
 
         # if self.use_memory_bank:
-        #     self.register_buffer("memory_bank", torch.randn(self.args.vocab_size, self.project_dim))
+        #     self.register_buffer("memory_bank", torch.randn(self.args.vocab_size, self.latent_dim))
         #     self.all_indices = np.arange(self.args.vocab_size)
 
         # self.negatives = self.args.num_negatives
@@ -446,16 +480,28 @@ class ViewGenModels(ViewModel):
         else:
             return mu
 
-    def get_blobs(self, x):
+    def get_blobs_from_encoder(self, x):
+    
+        x = self.init_layers(x)
+        x1 = self.block1(x)
+        x2 = self.block2(x1)
+        x3 = self.block3(x2)
+        x4 = self.block4(x3)
+
+        layers = [x1,x2,x3,x4]
+
+        return layers[-self.n_blobs:]
+
+    def get_blobs_from_decoder(self, x, index):
 
         x1 = self.decoder_network[:1](x)
         x2 = self.decoder_network[:2](x)
         x3 = self.decoder_network[:3](x)
         x4 = self.decoder_network[:4](x)
 
-        layers = [x1,x2,x3,x4]
+        layers = np.array([x1,x2,x3,x4])
 
-        return layers[:self.n_blobs-1]
+        return list(layers[index])
     
 
     def forward(self, batch_input, task=None):
@@ -514,7 +560,7 @@ class ViewGenModels(ViewModel):
             mu = mu_logvar[:,0]
             logvar = mu_logvar[:,1]
 
-            z = self.reparameterize(mu,logvar).view(bs,self.project_dim,1,1)
+            z = self.reparameterize(mu,logvar).view(bs,self.latent_dim,1,1)
 
             generated_image = self.decoder_network(z)
             # print(generated_image.shape, mu.shape, logvar.shape)
@@ -530,8 +576,19 @@ class ViewGenModels(ViewModel):
         if self.detect_objects:
 
             # print(fusion.shape)
-            layers = self.get_blobs(fusion)
-            features = self.fpn([layers[1],layers[0],fusion])
+            if "decoder" in self.blobs_strategy:
+                if "var" in self.model_type:
+                    layers = self.get_blobs_from_decoder(z,[1,2,3])
+                    # print(len(layers))
+                    # print(layers[0].shape, layers[1].shape, layers[2].shape)
+                    features = self.fpn([layers[2],layers[1],layers[0]])
+                else:
+                    layers = self.get_blobs_from_decoder(fusion,[0,1])
+                    features = self.fpn([layers[1],layers[0],fusion])
+            else:
+                layers = self.get_blobs_from_encoder(batch_input["image"].flatten(0,1))
+                # print(layers[0].shape, layers[1].shape, layers[2].shape)
+                features = self.fpn(layers)
             # print(len(features))
             # print(features[0].shape,features[1].shape, features[2].shape)
             # print([(self.regressionModel(feature).shape,feature.shape) for feature in features])

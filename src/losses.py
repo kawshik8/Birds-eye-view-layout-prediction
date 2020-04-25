@@ -22,7 +22,9 @@ def calc_iou(a, b):
     return IoU
 
 class FocalLoss(nn.Module):
-    #def __init__(self):
+    def __init__(self, fused):
+        super().__init__()
+        self.fused = not fused
 
     def forward(self, classifications, regressions, anchors, annotations):
         alpha = 0.25
@@ -31,7 +33,15 @@ class FocalLoss(nn.Module):
         classification_losses = []
         regression_losses = []
 
+        # print("insider focal loss")
+        # print(anchors.shape)
+        # print(classifications.shape,regressions.shape, annotations.shape)
+
+        if not self.fused:
+            anchors = anchors.unsqueeze(1).repeat(1,6,1,1).flatten(1,2)
+        
         anchor = anchors[0, :, :]
+
 
         anchor_widths  = anchor[:, 2] - anchor[:, 0]
         anchor_heights = anchor[:, 3] - anchor[:, 1]

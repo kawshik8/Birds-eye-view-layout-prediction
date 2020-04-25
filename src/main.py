@@ -63,9 +63,9 @@ def main(args):
             view_pretrain_complete_ckpt = os.path.join(
                 args.exp_dir, "view_pretrain_%s_complete.pth" % pretrain_task[0].name
             )
-            save_model(viewssl_complete_ckpt, view_ssl_model)
+            save_model(view_pretrain_complete_ckpt, view_ssl_model)
         else:
-            if args.viewssl_pretrained_load_ckpt:
+            if args.viewssl_load_ckpt:
                 view_pretrain_complete_ckpt = args.viewssl_load_ckpt
 
     # finetune and test

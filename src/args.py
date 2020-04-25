@@ -43,7 +43,7 @@ parser.add_argument(
     "--finetune-obj",
     type=str,
     default="det_encoder",
-    choices=["det_encoder","var_autoencoder","adv_masked_autoencoder","none"],
+    choices=["det_encoder","var_encoder","adv_encoder","none"],
     help="finetune task, 'none' means skip finetune",
 )
 
@@ -60,6 +60,15 @@ parser.add_argument(
     type=str,
     default="concat",
     choices=["concat", "mean", "cross_attention"],
+    help="fuse 6 views in different ways",
+)
+# self.blobs_strategy = "encoder_views"
+#         assert self.blobs_strategy in ["decoder", "encoder_fused", "encoder_views"]
+parser.add_argument(
+    "--blobs-strategy",
+    type = str,
+    default="encoder_fused",
+    choices=["decoder", "encoder_fused", "encoder_views"],
     help="fuse 6 views in different ways",
 )
 
@@ -115,6 +124,16 @@ parser.add_argument(
 # num_patches
 parser.add_argument(
     "--num-patches", type=int, default=9, help="number of patches an image is broken into"
+)
+
+# project_dim for pirl
+parser.add_argument(
+    "--project-dim", type=int, default=128, help="projection head dim for SSL approaches"
+)
+
+# z_dim for variational inference
+parser.add_argument(
+    "--latent-dim", type=int, default=128, help="z dim for variational inference"
 )
 
 # num_patches
