@@ -41,9 +41,15 @@ class Trainer(object):
         self.model.eval()
         self.task.reset_scorers()
         with torch.no_grad():
-            for batch, (idx,image,query) in enumerate(self.task.data_iterators[split]):
+            for batch, inputs in enumerate(self.task.data_iterators[split]):
                 
-                batch_input = {"image":image,"query":query,"idx":idx}
+                if self.stage == "pretrain":
+                    image, query, index = inputs
+                    batch_input = {"image":image,"query":query,"idx":index}
+                else:
+                    index, image, bounding_box, classes, action, ego, road = inputs
+                    batch_input = {"image":image,"idx":index, "bbox":bounding_box, "classes":classes, "action":action, "ego":ego, "road":road}
+
 
                 for k, v in batch_input.items():
                    batch_input[k] = batch_input[k].to(self.args.device)
@@ -77,11 +83,10 @@ class Trainer(object):
             for batch, inputs in enumerate(self.task.data_iterators["train"]):
                 # print(idx,image.shape,query.shape)
                 if self.stage == "pretrain":
-                    image, query, index = inputs
-                    batch_input = {"image":image,"query":query,"idx":idx}
+                    index, image, query = inputs
+                    batch_input = {"image":image,"query":query,"idx":index}
                 else:
                     index, image, bounding_box, classes, action, ego, road = inputs
-                    print(index.shape, image.shape, bounding_box.shape, classes.shape, action.shape, ego.shape, road.shape )
                     batch_input = {"image":image,"idx":index, "bbox":bounding_box, "classes":classes, "action":action, "ego":ego, "road":road}
 
                 for k, v in batch_input.items():

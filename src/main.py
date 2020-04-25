@@ -46,27 +46,27 @@ def main(args):
     if len(pretrain_task):
         if args.image_pretrain_obj != "none":
             image_ssl_model.to(args.device)
-            pretrain = Trainer("image_pretrain", image_ssl_model, pretrain_task[0], args)
+            pretrain = Trainer("pretrain", image_ssl_model, pretrain_task[0], args)
             pretrain.train()
             image_pretrain_complete_ckpt = os.path.join(
                 args.exp_dir, "image_pretrain_%s_complete.pth" % pretrain_task[0].name
             )
             save_model(image_pretrain_complete_ckpt, image_ssl_model)
         else:
-            if args.imagessl_pretrained_load_ckpt:
-                image_pretrain_complete_ckpt = args.imagessl_pretrained_load_ckpt
+            if args.imagessl_load_ckpt:
+                image_pretrain_complete_ckpt = args.imagessl_load_ckpt
 
         if args.view_pretrain_obj != "none":
             view_ssl_model.to(args.device)
-            pretrain = Trainer("view_pretrain", view_ssl_model, pretrain_task[0], args)
+            pretrain = Trainer("pretrain", view_ssl_model, pretrain_task[0], args)
             pretrain.train()
             view_pretrain_complete_ckpt = os.path.join(
                 args.exp_dir, "view_pretrain_%s_complete.pth" % pretrain_task[0].name
             )
-            save_model(view_pretrain_complete_ckpt, view_ssl_model)
+            save_model(viewssl_complete_ckpt, view_ssl_model)
         else:
             if args.viewssl_pretrained_load_ckpt:
-                view_pretrain_complete_ckpt = args.viewssl_pretrained_load_ckpt
+                view_pretrain_complete_ckpt = args.viewssl_load_ckpt
 
     # finetune and test
     for task in finetune_tasks:

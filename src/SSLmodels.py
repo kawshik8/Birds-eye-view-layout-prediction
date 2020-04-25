@@ -181,7 +181,6 @@ class ImageSSLModels(SSLModel):
         bs = image.size(0)
         self.batch_size = bs
 
-
         patches = self.pretrain_network(query.flatten(0, 1)).view(
             bs, self.num_patches, -1
         )  # (bs, num_patches, d_model)
@@ -446,7 +445,7 @@ class ViewSSLModels(SSLModel):
             
             query_views = batch_input["image"]
             if "masked" in self.args.view_pretrain_obj:
-                key_views = torch.zeros(bs,self.mask_inps,3,self.input_dim,self.input_dim)
+                key_views = torch.zeros(bs,self.mask_ninps,3,self.input_dim,self.input_dim)
             else:
                 key_views = batch_input["image"]
 
@@ -459,12 +458,11 @@ class ViewSSLModels(SSLModel):
                 # print(pos_mask)
                 # print(neg_mask)
                 if "masked" in self.args.view_pretrain_obj:
+                    print(query_views[index,neg_mask].shape)
                     key_views[index] = query_views[index,neg_mask]
 
                 query_views[index,neg_mask] = 0
                 # key_view[index] = views[index,neg_mask]
-
-            print(query_views.shape)
 
 
         else:
@@ -474,7 +472,6 @@ class ViewSSLModels(SSLModel):
         views = self.image_network(query_views.flatten(0,1))
         _,c,h,w = views.shape
         views = views.view(bs,6,c,h,w)
-        print(views.shape)
 
         if self.det_fusion_strategy == "concat_fuse":
             fusion = self.reduce(views.flatten(1,2))
@@ -492,8 +489,6 @@ class ViewSSLModels(SSLModel):
                 for i in range(self.mask_ninps):
                     mapped_image[i] = self.decoder_network(fusion)
 
-                print(mapped_image.shape, key_views.shape)
-
                 batch_output["loss"] = self.criterion(mapped_image, key_views)
                 
                 batch_output["acc"] = (mapped_image == key_views).float().mean()
@@ -504,8 +499,6 @@ class ViewSSLModels(SSLModel):
 
                 for i in range(6):
                     mapped_image[i] = self.decoder_network(fusion)
-
-                print(mapped_image.shape, key_views.shape)
 
                 batch_output["loss"] = self.criterion(mapped_image, key_views)
                 

@@ -129,10 +129,12 @@ class RegressionModel(nn.Module):
 
         out = self.output(out)
 
+        # print("final", out.shape, "input", x.shape)
+
         # out is B x C x W x H, with C = 4*num_anchors
         out = out.permute(0, 2, 3, 1)
 
-        print("final", out.shape, "input", x.shape, "final1", out.shape)
+        # print("final1", out.shape)
 
         return out.contiguous().view(out.shape[0], -1, 4)
 
@@ -176,7 +178,11 @@ class ClassificationModel(nn.Module):
         out = self.output_act(out)
 
         # out is B x C x W x H, with C = n_classes + n_anchors
+        # print("final", out.shape, "input", x.shape)
+
         out1 = out.permute(0, 2, 3, 1)
+
+        # print("final", out1.shape)
 
         batch_size, width, height, channels = out1.shape
 
@@ -275,7 +281,7 @@ class ViewGenModels(ViewModel):
         else:
             self.max_f = self.d_model
 
-        print(self.args.finetune_obj)
+        # print(self.args.finetune_obj)
         self.model_type = self.args.finetune_obj.split("_")[0]
 
         self.input_dim = 256
@@ -466,13 +472,13 @@ class ViewGenModels(ViewModel):
         road_map = batch_input["road"]
         bbox = batch_input["bbox"]
         classes = batch_input["classes"]
-        print(bbox.shape,classes.shape)
+        # print(bbox.shape,classes.shape)
         annotations = torch.cat([bbox.type(torch.FloatTensor),classes.type(torch.FloatTensor)],dim=2)
-        print(annotations.shape)
+        # print(annotations.shape)
 
         final_features = self.image_network(views.flatten(0,1))
 
-        print(final_features.shape)
+        # print(final_features.shape)
         _,c,h,w = final_features.shape
         views = final_features.view(bs,6,c,h,w)
 
@@ -487,12 +493,12 @@ class ViewGenModels(ViewModel):
         if self.n_synthesize > 0:
             fusion = self.synthesizer(fusion)
         
-        print("fusion:", fusion.shape)
+        # print("fusion:", fusion.shape)
 
         if "det" in self.model_type:
-            print("here")
+            # print("here")
             mapped_image = self.decoder_network(fusion)
-            print(mapped_image.shape, road_map.shape)
+            # print(mapped_image.shape, road_map.shape)
 
             batch_output["recon_loss"] = self.criterion(mapped_image, road_map)
             
@@ -511,7 +517,7 @@ class ViewGenModels(ViewModel):
             z = self.reparameterize(mu,logvar).view(bs,self.project_dim,1,1)
 
             generated_image = self.decoder_network(z)
-            print(generated_image.shape, mu.shape, logvar.shape)
+            # print(generated_image.shape, mu.shape, logvar.shape)
 
             reconstruction_loss = self.criterion(generated_image, road_map)
             kl_divergence_loss = 0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2))
@@ -523,25 +529,25 @@ class ViewGenModels(ViewModel):
 
         if self.detect_objects:
 
-            print(fusion.shape)
+            # print(fusion.shape)
             layers = self.get_blobs(fusion)
             features = self.fpn([layers[1],layers[0],fusion])
             # print(len(features))
             # print(features[0].shape,features[1].shape, features[2].shape)
-            print([(self.regressionModel(feature).shape,feature.shape) for feature in features])
+            # print([(self.regressionModel(feature).shape,feature.shape) for feature in features])
             regression = torch.cat([self.regressionModel(feature) for feature in features], dim=1)
-            print("regression:", regression.shape)
+            # print("regression:", regression.shape)
 
             classification = torch.cat([self.classificationModel(feature) for feature in features], dim=1)
-            print("classification:",classification.shape)
+            # print("classification:",classification.shape)
 
-            anchors = self.anchors(views)
+            anchors = self.anchors(batch_input["image"].flatten(0,1))
 
             if self.training:
-                print(classes.shape, annotations.shape)
-                print(anchors.shape, classification.shape, regression.shape, annotations.shape)
+                # print(classes.shape, annotations.shape)
+                # print(anchors.shape, classification.shape, regression.shape, annotations.shape)
                 batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
-                batch_output["loss"] += batch_output["classification_loss"] + batch_output["detection_loss"]
+                batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
             else:
                 transformed_anchors = self.regressBoxes(anchors, regression)
                 transformed_anchors = self.clipBoxes(transformed_anchors, img_batch)

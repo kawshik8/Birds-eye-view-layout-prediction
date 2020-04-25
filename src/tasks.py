@@ -329,6 +329,7 @@ class CUSTOM(Task):
         rand_crop_query = transforms.RandomResizedCrop(size=(255, 255),scale=(0.6, 1.0))
         if self.pretrain:
             if "pirl" in self.args.image_pretrain_obj:
+                print("PIRL transformations")
                 train_transform = eval_transform = {
                     "image": transforms.Compose(
                             [
@@ -372,6 +373,12 @@ class CUSTOM(Task):
                                 # ToPatches(self.args.num_patches,self.args.view),
                             ]
                         ),
+                    "query": transforms.Compose(
+                        [
+                            transforms.Resize((256,256), interpolation=2),
+                            transforms.ToTensor(),
+                        ]
+                    )
                 }
             else:
                 train_transform = eval_transform = {

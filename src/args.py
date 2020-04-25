@@ -27,7 +27,7 @@ parser.add_argument(
     "--image-pretrain-obj",
     type=str,
     default="pirl_nce_loss",
-    choices=["pirl_nce_loss", "pirl_infonce_loss", "multilabel_loss", "deepinfomax_loss","none"],
+    choices=["pirl_nce_loss", "pirl_infonce_loss", "multilabel_loss","none"],
     help="pretrain image based task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
 
@@ -166,7 +166,13 @@ parser.add_argument(
 # Training settings
 # load_ckpt
 parser.add_argument(
-    "--load-ckpt",
+    "--imagessl-load-ckpt",
+    type=str,
+    default="none",
+    help="load parameters from a checkpoint, choose auto to resume interrupted experiment",
+)
+parser.add_argument(
+    "--viewssl-load-ckpt",
     type=str,
     default="none",
     help="load parameters from a checkpoint, choose auto to resume interrupted experiment",

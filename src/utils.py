@@ -71,7 +71,7 @@ class Resblock(nn.Module):
 
         x+=x1
         return x
-        
+
 class Anchors(nn.Module):
     def __init__(self, pyramid_levels=None, strides=None, sizes=None, ratios=None, scales=None):
         super(Anchors, self).__init__()
