@@ -90,13 +90,10 @@ class UnlabeledDataset(torch.utils.data.Dataset):
             image = Image.open(image_path)
             image.load()
 
-            # print(type(image))
             query = self.transform["query"](image)
             image = self.transform["image"](image)
-            # print(type(image))
-            # print(image.shape,query.shape)
 
-            return index,image,query#2, index % NUM_IMAGE_PER_SAMPLE
+            return index, image, query
 
 # The dataset class for labeled data.
 class LabeledDataset(torch.utils.data.Dataset):    
@@ -145,8 +142,15 @@ class LabeledDataset(torch.utils.data.Dataset):
         road_image = convert_map_to_road_map(ego_image)
         road_image = self.transform["road"](road_image.type(torch.FloatTensor))
 
-        bounding_box = torch.as_tensor(corners).view(-1, 2, 4)
-        classes = torch.as_tensor(categories)
+        bounding_box = torch.as_tensor(corners).view(-1, 2, 4).transpose(1,2).flatten(1,2)
+        bbox = torch.zeros(bounding_box.shape[0],4)
+        # print(bbox.shape, bounding_box.shape)
+        bbox[:, 0:2] = bounding_box[:, 4:6]
+        bbox[:, 2:4] = bounding_box[:, 2:4]
+
+        # print(scene_id, sample_id, bounding_box.shape)
+        classes = torch.as_tensor(categories).view(-1, 1)
+
 
         if self.extra_info:
             actions = data_entries.action_id.to_numpy()
@@ -154,12 +158,16 @@ class LabeledDataset(torch.utils.data.Dataset):
             lane_image = convert_map_to_lane_map(ego_image, binary_lane=True)
             
             action = torch.as_tensor(actions)
-            ego = ego_image
+            ego = self.transform["road"](ego_image)
             road = lane_image
 
-            return index,image_tensor, bounding_box, classes, action, ego, road_image
+            # print(scene_id, sample_id, bounding_box[0])
+            # print(bounding_box.shape,classes.shape)
+            # print(classes)
+            # exit(0)
+            return index,image_tensor, bbox, classes, action, ego, road_image
 
         else:
-            return index,image_tensor, bounding_box, classes
+            return index,image_tensor, bbox, classes
 
         

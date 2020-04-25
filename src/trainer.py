@@ -81,6 +81,7 @@ class Trainer(object):
                     batch_input = {"image":image,"query":query,"idx":idx}
                 else:
                     index, image, bounding_box, classes, action, ego, road = inputs
+                    print(index.shape, image.shape, bounding_box.shape, classes.shape, action.shape, ego.shape, road.shape )
                     batch_input = {"image":image,"idx":index, "bbox":bounding_box, "classes":classes, "action":action, "ego":ego, "road":road}
 
                 for k, v in batch_input.items():

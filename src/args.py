@@ -28,7 +28,7 @@ parser.add_argument(
     type=str,
     default="pirl_nce_loss",
     choices=["pirl_nce_loss", "pirl_infonce_loss", "multilabel_loss", "deepinfomax_loss","none"],
-    help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
+    help="pretrain image based task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
 
 parser.add_argument(
@@ -36,6 +36,22 @@ parser.add_argument(
     type=str,
     default=None,
     choices=["det_masked_autoencoder","var_masked_autoencoder","adv_masked_autoencoder", "nce_loss", "infonce_loss","none"],
+    help="pretrain view based task, '_un' is for unsupervised. 'none' means skip pretrain",
+)
+
+parser.add_argument(
+    "--finetune-obj",
+    type=str,
+    default="det_encoder",
+    choices=["det_encoder","var_autoencoder","adv_masked_autoencoder","none"],
+    help="finetune task, 'none' means skip finetune",
+)
+
+parser.add_argument(
+    "--obj-det-head",
+    type=str,
+    default="retinanet",
+    choices=["retinanet","maskrcnn","none"],
     help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
 
@@ -43,8 +59,15 @@ parser.add_argument(
     "--view-fusion_strategy",
     type=str,
     default="concat",
-    choices=["concat", "cross_attention"],
-    help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
+    choices=["concat", "mean", "cross_attention"],
+    help="fuse 6 views in different ways",
+)
+
+parser.add_argument(
+    "--synthesizer-nlayers",
+    type=int,
+    default=1,
+    help="number of layers in synthesizer (0 indicates no synthesizer)",
 )
 
 # pretrain_task objective settings for models other than selfie
@@ -139,13 +162,6 @@ parser.add_argument(
     default=0,
     help="number of cached negative images per image in minibatch",
 )
-
-# Model settings
-# model
-parser.add_argument("--model", type=str, default="baseline", choices=["baseline","selfie","Allp","Exp","selfie1"])
-# TODO: some settings about model extensions
-# TODO: e.g. whether to use negative example from minibatch
-
 
 # Training settings
 # load_ckpt

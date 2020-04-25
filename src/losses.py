@@ -44,6 +44,7 @@ class FocalLoss(nn.Module):
             regression = regressions[j, :, :]
 
             bbox_annotation = annotations[j, :, :]
+
             bbox_annotation = bbox_annotation[bbox_annotation[:, 4] != -1]
 
             if bbox_annotation.shape[0] == 0:
@@ -57,8 +58,10 @@ class FocalLoss(nn.Module):
                 continue
 
             classification = torch.clamp(classification, 1e-4, 1.0 - 1e-4)
+            print("anchors:" , anchors[0,:,:].shape, "bbox:" , bbox_annotation[:,:4].shape)
 
             IoU = calc_iou(anchors[0, :, :], bbox_annotation[:, :4]) # num_anchors x num_annotations
+            print(IoU.shape)
 
             IoU_max, IoU_argmax = torch.max(IoU, dim=1) # num_anchors x 1
 
@@ -67,6 +70,8 @@ class FocalLoss(nn.Module):
 
             # compute the loss for classification
             targets = torch.ones(classification.shape) * -1
+            print(anchors.shape)
+            print(classifications.shape, targets.shape)
 
             if torch.cuda.is_available():
                 targets = targets.cuda()

@@ -6,7 +6,72 @@ import torch.nn as nn
 
 EPSILON = 1e-8
 
+class block(nn.Module):
+    
+    def __init__(self, input_channels, output_channels, kernel, strides, pad, activation="relu", norm = True, use_transpose=True):
+        super().__init__()
 
+        if use_transpose:
+            self.conv = nn.ConvTranspose2d(in_channels = input_channels, out_channels = output_channels, kernel_size = kernel, stride = strides, padding = pad)
+        else:
+            self.conv = nn.Conv2d(in_channels = input_channels, out_channels = output_channels, kernel_size = kernel, stride = strides, padding = pad)
+
+        self.use_norm = norm
+
+        if norm:
+            self.bn = nn.BatchNorm2d(output_channels)
+        if activation == "relu":
+            self.activation = nn.ReLU(inplace=True)
+        elif activation == "leakyrelu":
+            self.activation = nn.LeakyReLU(0.2,inplace=True)
+        elif activation == "tanh":
+            self.activation = nn.Tanh()
+        elif activation == "sigmoid":
+            self.activation = nn.Sigmoid()
+
+    def forward(self, x):
+
+        x = self.conv(x)
+
+        if self.use_norm:
+            x = self.bn(x)
+
+        x = self.activation(x)
+
+        return x
+
+class Resblock(nn.Module):
+    
+    def __init__(self, input_channels, output_channels, kernel, strides, pad, activation="relu", norm = True):
+        super().__init__()
+
+        self.conv = nn.Conv2d(in_channels = input_channels, out_channels = output_channels, kernel_size = kernel, stride = strides, padding = pad)
+
+        self.use_norm = norm
+
+        if norm:
+            self.bn = nn.BatchNorm2d(output_channels)
+        if activation == "relu":
+            self.activation = nn.ReLU(inplace=True)
+        elif activation == "leakyrelu":
+            self.activation = nn.LeakyReLU(0.2,inplace=True)
+        elif activation == "tanh":
+            self.activation = nn.Tanh()
+        elif activation == "sigmoid":
+            self.activation = nn.Sigmoid()
+
+    def forward(self, x1):
+
+        x = self.bn(x1)
+        x = self.activation(x)
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.activation(x)
+        x = self.conv(x)
+
+        x+=x1
+        return x
+        
 class Anchors(nn.Module):
     def __init__(self, pyramid_levels=None, strides=None, sizes=None, ratios=None, scales=None):
         super(Anchors, self).__init__()
