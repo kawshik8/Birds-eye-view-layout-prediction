@@ -295,7 +295,7 @@ class ViewGenModels(ViewModel):
         self.num_classes = 9
 
         self.gen_roadmap = True
-        self.detect_objects = True
+        self.detect_objects = self.args.detect_objects
 
         self.fusion = self.args.view_fusion_strategy
 
