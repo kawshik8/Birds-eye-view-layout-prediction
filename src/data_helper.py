@@ -58,7 +58,7 @@ class UnlabeledDataset(torch.utils.data.Dataset):
         if self.first_dim == 'sample':
             scene_id = self.scene_index[index // NUM_SAMPLE_PER_SCENE]
             sample_id = index % NUM_SAMPLE_PER_SCENE
-            sample_path = os.path.join(self.image_folder, f'scene_{scene_id}', f'sample_{sample_id}') 
+            sample_path = os.path.join(self.image_folder, 'scene_'+str(scene_id), 'sample_'+str(sample_id)) 
 
             images = []
             for image_name in image_names:
@@ -74,7 +74,7 @@ class UnlabeledDataset(torch.utils.data.Dataset):
             sample_id = (index % (NUM_SAMPLE_PER_SCENE * NUM_IMAGE_PER_SAMPLE)) // NUM_IMAGE_PER_SAMPLE
             image_name = image_names[index % NUM_IMAGE_PER_SAMPLE]
 
-            image_path = os.path.join(self.image_folder, f'scene_{scene_id}', f'sample_{sample_id}', image_name) 
+            image_path = os.path.join(self.image_folder, 'scene_'+str(scene_id), 'sample_'+str(sample_id), image_name) 
             
             image = Image.open(image_path)
 
@@ -104,7 +104,7 @@ class LabeledDataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         scene_id = self.scene_index[index // NUM_SAMPLE_PER_SCENE]
         sample_id = index % NUM_SAMPLE_PER_SCENE
-        sample_path = os.path.join(self.image_folder, f'scene_{scene_id}', f'sample_{sample_id}') 
+        sample_path = os.path.join(self.image_folder, 'scene_'+str(scene_id), 'sample_'+str(sample_id)) 
 
         images = []
         for image_name in image_names:
