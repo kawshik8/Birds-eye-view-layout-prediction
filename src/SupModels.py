@@ -245,14 +245,18 @@ class ViewModel(nn.Module):
                     "weight_decay": self.args.finetune_weight_decay,
                 }
             )
-        optimizer = optim.AdamW(param_groups)
-        scheduler = torch.optim.lr_scheduler.OneCycleLR(
+        optimizer = optim.SGD(param_groups, lr=self.args.finetune_learning_rate, momentum=0.9)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer=optimizer,
-            anneal_strategy="cos",
-            total_steps=self.args.finetune_total_iters,
-            pct_start=self.args.warmup_iters / self.args.finetune_total_iters,
-            cycle_momentum=False,
-            max_lr=self.args.finetune_learning_rate,
+            mode = "min",
+            factor=0.1, 
+            patience=10, 
+            verbose=False, 
+            threshold=0.0001, 
+            threshold_mode='rel', 
+            cooldown=0, 
+            min_lr=0, 
+            eps=1e-08
         )
 
         return optimizer, scheduler
