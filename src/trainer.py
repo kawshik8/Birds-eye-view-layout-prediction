@@ -80,6 +80,7 @@ class Trainer(object):
         all_param = [param for group in self.optimizer.param_groups for param in group["params"]]
         for epoch in range(math.ceil(self.total_iters / len(self.task.data_iterators["train"]))):
             for batch, inputs in enumerate(self.task.data_iterators["train"]):
+            
                 # print(idx,image.shape,query.shape)
                 if self.stage == "pretrain":
                     index, image, query = inputs

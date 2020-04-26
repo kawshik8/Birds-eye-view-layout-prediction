@@ -44,6 +44,61 @@ def task_num_class(name):
     else:
         return 10
 
+def collater(data):
+    # print(len(data))
+    # print(len(data[0]))
+    bs = len(data)
+
+    image_shape = data[0][1].shape
+    
+
+    # index, image, bounding_box, classes, action, ego, road
+    # index, image, query = inputs
+    if len(data[0]) == 7:
+        road_shape = data[0][-1].shape
+        ego_shape = data[0][-2].shape
+        indices = torch.zeros(bs,1)
+        images = torch.zeros(bs, image_shape[0], image_shape[1], image_shape[2], image_shape[3])
+        egos = torch.zeros(bs,ego_shape[0],ego_shape[1],ego_shape[2])
+        roads = torch.zeros(bs,road_shape[0],road_shape[1],road_shape[2])
+
+        shapes = []
+        for item_set in data:
+            # for item in item_set:
+                shapes.append(item_set[2].shape[0])
+
+        max_boxes = max(shapes)
+
+        bboxes = torch.ones(bs,max_boxes,4)*-1
+        classes = torch.ones(bs,max_boxes,1)*-1
+        actions = torch.ones(bs,max_boxes)*-1
+
+        items = [indices, images, bboxes, classes, actions, egos, roads]
+
+        for i,data_items in enumerate(data):
+            for j, item in enumerate(data_items):
+                if j>=2 and j<=4:
+                    shape = item.shape[0]
+                    items[j][i][:shape] = item
+                else:
+                    items[j][i] = item
+
+    
+    else:
+        query_shape = data[0][-1].shape
+        indices = torch.zeros(bs,1)
+        images = torch.zeros(bs, image_shape[0], image_shape[1], image_shape[2], image_shape[3])
+        queries = torch.zeros(bs, query_shape[0], query_shape[1], query_shape[2], query_shape[3])
+
+        items = [indices, images, queries]
+
+        for i,data_items in enumerate(data):
+            for j, item in data_items:
+                items[j][i] = item
+
+  
+    return items
+
 
 class RandomTranslateWithReflect:
     """
@@ -279,6 +334,7 @@ class Task(object):
                 pin_memory=True,
                 drop_last=(split == "train"),
                 num_workers=self.args.num_workers,
+                collate_fn = collater,
             )
 
 

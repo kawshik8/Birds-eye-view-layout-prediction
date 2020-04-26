@@ -1784,3 +1784,562 @@
 2020-04-21 22:42:57,743 [MainThread  ] train batch 4 / 8127 (iter 4), current average result {'loss': tensor(7.9565, grad_fn=<DivBackward0>), 'jigsaw_acc': tensor(0.)}
 2020-04-21 22:43:27,075 [MainThread  ] train batch 5 / 8127 (iter 5), current average result {'loss': tensor(7.7965, grad_fn=<DivBackward0>), 'jigsaw_acc': tensor(0.)}
 2020-04-21 22:43:49,012 [MainThread  ] train batch 6 / 8127 (iter 6), current average result {'loss': tensor(7.7917, grad_fn=<DivBackward0>), 'jigsaw_acc': tensor(0.)}
+2020-04-26 01:25:00,959 [MainThread  ] Experiment debug
+2020-04-26 01:25:00,959 [MainThread  ] Receive config Namespace(batch_size=1, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj=None, imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj=None, viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:25:00,960 [MainThread  ] Start creating tasks
+2020-04-26 01:25:00,960 [MainThread  ] Start loading data
+2020-04-26 01:25:00,960 [MainThread  ] Loading custom_un_sample data
+2020-04-26 01:26:58,816 [MainThread  ] Experiment debug
+2020-04-26 01:26:58,817 [MainThread  ] Receive config Namespace(batch_size=1, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj=None, imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj=None, viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:26:58,817 [MainThread  ] Start creating tasks
+2020-04-26 01:26:58,817 [MainThread  ] Start loading data
+2020-04-26 01:26:58,817 [MainThread  ] Loading custom_un_sample data
+2020-04-26 01:29:04,386 [MainThread  ] Experiment debug
+2020-04-26 01:29:04,387 [MainThread  ] Receive config Namespace(batch_size=1, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj=None, imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj=None, viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:29:04,387 [MainThread  ] Start creating tasks
+2020-04-26 01:29:04,387 [MainThread  ] Start loading data
+2020-04-26 01:29:04,388 [MainThread  ] Loading custom_un_sample data
+2020-04-26 01:29:53,693 [MainThread  ] Experiment debug
+2020-04-26 01:29:53,693 [MainThread  ] Receive config Namespace(batch_size=1, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj=None, imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj=None, viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:29:53,694 [MainThread  ] Start creating tasks
+2020-04-26 01:29:53,694 [MainThread  ] Start loading data
+2020-04-26 01:29:53,694 [MainThread  ] Loading custom_un_sample data
+2020-04-26 01:30:55,693 [MainThread  ] Experiment debug
+2020-04-26 01:30:55,693 [MainThread  ] Receive config Namespace(batch_size=1, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:30:55,694 [MainThread  ] Start creating tasks
+2020-04-26 01:30:55,694 [MainThread  ] Start loading data
+2020-04-26 01:30:55,694 [MainThread  ] Loading custom_sup data
+2020-04-26 01:30:56,203 [MainThread  ] Start creating models
+2020-04-26 01:30:57,720 [MainThread  ] Loaded supervised model
+2020-04-26 01:30:57,739 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 01:30:57,740 [MainThread  ] Start training custom_sup
+2020-04-26 01:31:23,599 [MainThread  ] train batch 1 / 2520 (iter 1), current average result {'loss': tensor(0.8438, grad_fn=<DivBackward0>), 'acc': tensor(0.)}
+2020-04-26 01:31:54,974 [MainThread  ] Experiment debug
+2020-04-26 01:31:54,974 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:31:54,974 [MainThread  ] Start creating tasks
+2020-04-26 01:31:54,975 [MainThread  ] Start loading data
+2020-04-26 01:31:54,975 [MainThread  ] Loading custom_sup data
+2020-04-26 01:31:55,390 [MainThread  ] Start creating models
+2020-04-26 01:31:56,677 [MainThread  ] Loaded supervised model
+2020-04-26 01:31:56,683 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 01:31:56,684 [MainThread  ] Start training custom_sup
+2020-04-26 01:45:31,631 [MainThread  ] Experiment debug
+2020-04-26 01:45:31,632 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:45:31,632 [MainThread  ] Start creating tasks
+2020-04-26 01:45:31,632 [MainThread  ] Start loading data
+2020-04-26 01:45:31,633 [MainThread  ] Loading custom_sup data
+2020-04-26 01:45:32,139 [MainThread  ] Start creating models
+2020-04-26 01:45:33,482 [MainThread  ] Loaded supervised model
+2020-04-26 01:45:33,490 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 01:45:33,490 [MainThread  ] Start training custom_sup
+2020-04-26 01:45:48,934 [MainThread  ] Experiment debug
+2020-04-26 01:45:48,934 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:45:48,935 [MainThread  ] Start creating tasks
+2020-04-26 01:45:48,935 [MainThread  ] Start loading data
+2020-04-26 01:45:48,935 [MainThread  ] Loading custom_sup data
+2020-04-26 01:45:49,373 [MainThread  ] Start creating models
+2020-04-26 01:45:50,720 [MainThread  ] Loaded supervised model
+2020-04-26 01:45:50,727 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 01:45:50,727 [MainThread  ] Start training custom_sup
+2020-04-26 01:47:01,179 [MainThread  ] Experiment debug
+2020-04-26 01:47:01,180 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:47:01,180 [MainThread  ] Start creating tasks
+2020-04-26 01:47:01,180 [MainThread  ] Start loading data
+2020-04-26 01:47:01,180 [MainThread  ] Loading custom_sup data
+2020-04-26 01:47:01,601 [MainThread  ] Start creating models
+2020-04-26 01:47:02,915 [MainThread  ] Loaded supervised model
+2020-04-26 01:47:02,921 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 01:47:02,921 [MainThread  ] Start training custom_sup
+2020-04-26 01:47:24,830 [MainThread  ] Experiment debug
+2020-04-26 01:47:24,830 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:47:24,831 [MainThread  ] Start creating tasks
+2020-04-26 01:47:24,831 [MainThread  ] Start loading data
+2020-04-26 01:47:24,831 [MainThread  ] Loading custom_sup data
+2020-04-26 01:47:25,258 [MainThread  ] Start creating models
+2020-04-26 01:47:26,568 [MainThread  ] Loaded supervised model
+2020-04-26 01:47:26,574 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 01:47:26,574 [MainThread  ] Start training custom_sup
+2020-04-26 01:47:43,251 [MainThread  ] Experiment debug
+2020-04-26 01:47:43,251 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:47:43,251 [MainThread  ] Start creating tasks
+2020-04-26 01:47:43,252 [MainThread  ] Start loading data
+2020-04-26 01:47:43,252 [MainThread  ] Loading custom_sup data
+2020-04-26 01:47:43,671 [MainThread  ] Start creating models
+2020-04-26 01:47:44,978 [MainThread  ] Loaded supervised model
+2020-04-26 01:47:44,983 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 01:47:44,984 [MainThread  ] Start training custom_sup
+2020-04-26 01:59:25,790 [MainThread  ] Experiment debug
+2020-04-26 01:59:25,790 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:59:25,790 [MainThread  ] Start creating tasks
+2020-04-26 01:59:25,791 [MainThread  ] Start loading data
+2020-04-26 01:59:25,791 [MainThread  ] Loading custom_sup data
+2020-04-26 01:59:26,200 [MainThread  ] Start creating models
+2020-04-26 01:59:27,584 [MainThread  ] Loaded supervised model
+2020-04-26 01:59:27,590 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 01:59:27,590 [MainThread  ] Start training custom_sup
+2020-04-26 01:59:49,158 [MainThread  ] Experiment debug
+2020-04-26 01:59:49,158 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 01:59:49,158 [MainThread  ] Start creating tasks
+2020-04-26 01:59:49,158 [MainThread  ] Start loading data
+2020-04-26 01:59:49,158 [MainThread  ] Loading custom_sup data
+2020-04-26 01:59:49,578 [MainThread  ] Start creating models
+2020-04-26 01:59:50,883 [MainThread  ] Loaded supervised model
+2020-04-26 01:59:50,890 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 01:59:50,890 [MainThread  ] Start training custom_sup
+2020-04-26 02:00:09,294 [MainThread  ] Experiment debug
+2020-04-26 02:00:09,295 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:00:09,295 [MainThread  ] Start creating tasks
+2020-04-26 02:00:09,295 [MainThread  ] Start loading data
+2020-04-26 02:00:09,295 [MainThread  ] Loading custom_sup data
+2020-04-26 02:00:09,709 [MainThread  ] Start creating models
+2020-04-26 02:00:11,010 [MainThread  ] Loaded supervised model
+2020-04-26 02:00:11,016 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:00:11,017 [MainThread  ] Start training custom_sup
+2020-04-26 02:02:33,052 [MainThread  ] Experiment debug
+2020-04-26 02:02:33,053 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:02:33,053 [MainThread  ] Start creating tasks
+2020-04-26 02:02:33,053 [MainThread  ] Start loading data
+2020-04-26 02:02:33,053 [MainThread  ] Loading custom_sup data
+2020-04-26 02:02:33,482 [MainThread  ] Start creating models
+2020-04-26 02:02:34,837 [MainThread  ] Loaded supervised model
+2020-04-26 02:02:34,846 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:02:34,847 [MainThread  ] Start training custom_sup
+2020-04-26 02:03:14,628 [MainThread  ] Experiment debug
+2020-04-26 02:03:14,637 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:03:14,642 [MainThread  ] Start creating tasks
+2020-04-26 02:03:14,643 [MainThread  ] Start loading data
+2020-04-26 02:03:14,643 [MainThread  ] Loading custom_sup data
+2020-04-26 02:03:15,087 [MainThread  ] Start creating models
+2020-04-26 02:03:16,462 [MainThread  ] Loaded supervised model
+2020-04-26 02:03:16,468 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:03:16,468 [MainThread  ] Start training custom_sup
+2020-04-26 02:03:41,772 [MainThread  ] Experiment debug
+2020-04-26 02:03:41,772 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:03:41,773 [MainThread  ] Start creating tasks
+2020-04-26 02:03:41,773 [MainThread  ] Start loading data
+2020-04-26 02:03:41,773 [MainThread  ] Loading custom_sup data
+2020-04-26 02:03:42,182 [MainThread  ] Start creating models
+2020-04-26 02:03:43,474 [MainThread  ] Loaded supervised model
+2020-04-26 02:03:43,480 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:03:43,481 [MainThread  ] Start training custom_sup
+2020-04-26 02:03:58,127 [MainThread  ] Experiment debug
+2020-04-26 02:03:58,128 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:03:58,128 [MainThread  ] Start creating tasks
+2020-04-26 02:03:58,128 [MainThread  ] Start loading data
+2020-04-26 02:03:58,129 [MainThread  ] Loading custom_sup data
+2020-04-26 02:03:58,555 [MainThread  ] Start creating models
+2020-04-26 02:03:59,874 [MainThread  ] Loaded supervised model
+2020-04-26 02:03:59,880 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:03:59,880 [MainThread  ] Start training custom_sup
+2020-04-26 02:07:02,972 [MainThread  ] Experiment debug
+2020-04-26 02:07:02,973 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:07:02,973 [MainThread  ] Start creating tasks
+2020-04-26 02:07:02,973 [MainThread  ] Start loading data
+2020-04-26 02:07:02,973 [MainThread  ] Loading custom_sup data
+2020-04-26 02:07:03,426 [MainThread  ] Start creating models
+2020-04-26 02:07:04,739 [MainThread  ] Loaded supervised model
+2020-04-26 02:07:04,744 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:07:04,745 [MainThread  ] Start training custom_sup
+2020-04-26 02:08:47,471 [MainThread  ] Experiment debug
+2020-04-26 02:08:47,471 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:08:47,471 [MainThread  ] Start creating tasks
+2020-04-26 02:08:47,472 [MainThread  ] Start loading data
+2020-04-26 02:08:47,472 [MainThread  ] Loading custom_sup data
+2020-04-26 02:08:47,886 [MainThread  ] Start creating models
+2020-04-26 02:08:49,226 [MainThread  ] Loaded supervised model
+2020-04-26 02:08:49,232 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:08:49,232 [MainThread  ] Start training custom_sup
+2020-04-26 02:11:21,614 [MainThread  ] Experiment debug
+2020-04-26 02:11:21,614 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:11:21,614 [MainThread  ] Start creating tasks
+2020-04-26 02:11:21,615 [MainThread  ] Start loading data
+2020-04-26 02:11:21,615 [MainThread  ] Loading custom_sup data
+2020-04-26 02:11:22,028 [MainThread  ] Start creating models
+2020-04-26 02:11:23,332 [MainThread  ] Loaded supervised model
+2020-04-26 02:11:23,337 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:11:23,338 [MainThread  ] Start training custom_sup
+2020-04-26 02:13:39,839 [MainThread  ] Experiment debug
+2020-04-26 02:13:39,839 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:13:39,839 [MainThread  ] Start creating tasks
+2020-04-26 02:13:39,840 [MainThread  ] Start loading data
+2020-04-26 02:13:39,840 [MainThread  ] Loading custom_sup data
+2020-04-26 02:13:40,319 [MainThread  ] Start creating models
+2020-04-26 02:13:41,752 [MainThread  ] Loaded supervised model
+2020-04-26 02:13:41,758 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:13:41,759 [MainThread  ] Start training custom_sup
+2020-04-26 02:14:06,127 [MainThread  ] Experiment debug
+2020-04-26 02:14:06,128 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:14:06,128 [MainThread  ] Start creating tasks
+2020-04-26 02:14:06,128 [MainThread  ] Start loading data
+2020-04-26 02:14:06,128 [MainThread  ] Loading custom_sup data
+2020-04-26 02:14:06,539 [MainThread  ] Start creating models
+2020-04-26 02:14:07,839 [MainThread  ] Loaded supervised model
+2020-04-26 02:14:07,845 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:14:07,846 [MainThread  ] Start training custom_sup
+2020-04-26 02:14:30,516 [MainThread  ] Experiment debug
+2020-04-26 02:14:30,517 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:14:30,517 [MainThread  ] Start creating tasks
+2020-04-26 02:14:30,517 [MainThread  ] Start loading data
+2020-04-26 02:14:30,517 [MainThread  ] Loading custom_sup data
+2020-04-26 02:14:30,931 [MainThread  ] Start creating models
+2020-04-26 02:14:32,227 [MainThread  ] Loaded supervised model
+2020-04-26 02:14:32,233 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:14:32,233 [MainThread  ] Start training custom_sup
+2020-04-26 02:15:18,319 [MainThread  ] Experiment debug
+2020-04-26 02:15:18,319 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:15:18,320 [MainThread  ] Start creating tasks
+2020-04-26 02:15:18,320 [MainThread  ] Start loading data
+2020-04-26 02:15:18,320 [MainThread  ] Loading custom_sup data
+2020-04-26 02:15:18,728 [MainThread  ] Start creating models
+2020-04-26 02:15:20,082 [MainThread  ] Loaded supervised model
+2020-04-26 02:15:20,092 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:15:20,092 [MainThread  ] Start training custom_sup
+2020-04-26 02:15:45,610 [MainThread  ] Experiment debug
+2020-04-26 02:15:45,610 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:15:45,610 [MainThread  ] Start creating tasks
+2020-04-26 02:15:45,611 [MainThread  ] Start loading data
+2020-04-26 02:15:45,611 [MainThread  ] Loading custom_sup data
+2020-04-26 02:15:46,022 [MainThread  ] Start creating models
+2020-04-26 02:15:47,335 [MainThread  ] Loaded supervised model
+2020-04-26 02:15:47,341 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:15:47,342 [MainThread  ] Start training custom_sup
+2020-04-26 02:17:20,936 [MainThread  ] Experiment debug
+2020-04-26 02:17:20,937 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:17:20,937 [MainThread  ] Start creating tasks
+2020-04-26 02:17:20,937 [MainThread  ] Start loading data
+2020-04-26 02:17:20,938 [MainThread  ] Loading custom_sup data
+2020-04-26 02:17:21,380 [MainThread  ] Start creating models
+2020-04-26 02:17:22,754 [MainThread  ] Loaded supervised model
+2020-04-26 02:17:22,761 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:17:22,762 [MainThread  ] Start training custom_sup
+2020-04-26 02:18:07,491 [MainThread  ] Experiment debug
+2020-04-26 02:18:07,491 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:18:07,492 [MainThread  ] Start creating tasks
+2020-04-26 02:18:07,493 [MainThread  ] Start loading data
+2020-04-26 02:18:07,493 [MainThread  ] Loading custom_sup data
+2020-04-26 02:18:08,374 [MainThread  ] Start creating models
+2020-04-26 02:18:10,316 [MainThread  ] Loaded supervised model
+2020-04-26 02:18:10,323 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:18:10,324 [MainThread  ] Start training custom_sup
+2020-04-26 02:20:33,499 [MainThread  ] Experiment debug
+2020-04-26 02:20:33,499 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:20:33,500 [MainThread  ] Start creating tasks
+2020-04-26 02:20:33,500 [MainThread  ] Start loading data
+2020-04-26 02:20:33,500 [MainThread  ] Loading custom_sup data
+2020-04-26 02:20:33,925 [MainThread  ] Start creating models
+2020-04-26 02:20:35,262 [MainThread  ] Loaded supervised model
+2020-04-26 02:20:35,268 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:20:35,268 [MainThread  ] Start training custom_sup
+2020-04-26 02:20:52,320 [MainThread  ] Experiment debug
+2020-04-26 02:20:52,321 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:20:52,321 [MainThread  ] Start creating tasks
+2020-04-26 02:20:52,322 [MainThread  ] Start loading data
+2020-04-26 02:20:52,322 [MainThread  ] Loading custom_sup data
+2020-04-26 02:20:52,753 [MainThread  ] Start creating models
+2020-04-26 02:20:54,084 [MainThread  ] Loaded supervised model
+2020-04-26 02:20:54,091 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:20:54,091 [MainThread  ] Start training custom_sup
+2020-04-26 02:23:11,090 [MainThread  ] Experiment debug
+2020-04-26 02:23:11,091 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:23:11,091 [MainThread  ] Start creating tasks
+2020-04-26 02:23:11,091 [MainThread  ] Start loading data
+2020-04-26 02:23:11,091 [MainThread  ] Loading custom_sup data
+2020-04-26 02:23:11,509 [MainThread  ] Start creating models
+2020-04-26 02:23:12,823 [MainThread  ] Loaded supervised model
+2020-04-26 02:23:12,828 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:23:12,829 [MainThread  ] Start training custom_sup
+2020-04-26 02:23:45,602 [MainThread  ] Experiment debug
+2020-04-26 02:23:45,602 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:23:45,603 [MainThread  ] Start creating tasks
+2020-04-26 02:23:45,603 [MainThread  ] Start loading data
+2020-04-26 02:23:45,603 [MainThread  ] Loading custom_sup data
+2020-04-26 02:23:46,022 [MainThread  ] Start creating models
+2020-04-26 02:23:47,353 [MainThread  ] Loaded supervised model
+2020-04-26 02:23:47,359 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:23:47,360 [MainThread  ] Start training custom_sup
+2020-04-26 02:26:08,983 [MainThread  ] Experiment debug
+2020-04-26 02:26:08,984 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:26:08,984 [MainThread  ] Start creating tasks
+2020-04-26 02:26:08,985 [MainThread  ] Start loading data
+2020-04-26 02:26:08,985 [MainThread  ] Loading custom_sup data
+2020-04-26 02:26:09,424 [MainThread  ] Start creating models
+2020-04-26 02:26:10,759 [MainThread  ] Loaded supervised model
+2020-04-26 02:26:10,771 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:26:10,772 [MainThread  ] Start training custom_sup
+2020-04-26 02:26:35,506 [MainThread  ] Experiment debug
+2020-04-26 02:26:35,507 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:26:35,507 [MainThread  ] Start creating tasks
+2020-04-26 02:26:35,507 [MainThread  ] Start loading data
+2020-04-26 02:26:35,507 [MainThread  ] Loading custom_sup data
+2020-04-26 02:26:35,913 [MainThread  ] Start creating models
+2020-04-26 02:26:37,249 [MainThread  ] Loaded supervised model
+2020-04-26 02:26:37,255 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:26:37,256 [MainThread  ] Start training custom_sup
+2020-04-26 02:27:10,494 [MainThread  ] Experiment debug
+2020-04-26 02:27:10,494 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:27:10,494 [MainThread  ] Start creating tasks
+2020-04-26 02:27:10,494 [MainThread  ] Start loading data
+2020-04-26 02:27:10,495 [MainThread  ] Loading custom_sup data
+2020-04-26 02:27:10,904 [MainThread  ] Start creating models
+2020-04-26 02:27:12,229 [MainThread  ] Loaded supervised model
+2020-04-26 02:27:12,236 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:27:12,236 [MainThread  ] Start training custom_sup
+2020-04-26 02:27:36,302 [MainThread  ] Experiment debug
+2020-04-26 02:27:36,303 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:27:36,303 [MainThread  ] Start creating tasks
+2020-04-26 02:27:36,303 [MainThread  ] Start loading data
+2020-04-26 02:27:36,303 [MainThread  ] Loading custom_sup data
+2020-04-26 02:27:36,735 [MainThread  ] Start creating models
+2020-04-26 02:27:38,065 [MainThread  ] Loaded supervised model
+2020-04-26 02:27:38,075 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:27:38,081 [MainThread  ] Start training custom_sup
+2020-04-26 02:28:18,677 [MainThread  ] Experiment debug
+2020-04-26 02:28:18,677 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:28:18,678 [MainThread  ] Start creating tasks
+2020-04-26 02:28:18,679 [MainThread  ] Start loading data
+2020-04-26 02:28:18,679 [MainThread  ] Loading custom_sup data
+2020-04-26 02:28:19,114 [MainThread  ] Start creating models
+2020-04-26 02:28:20,467 [MainThread  ] Loaded supervised model
+2020-04-26 02:28:20,473 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:28:20,474 [MainThread  ] Start training custom_sup
+2020-04-26 02:28:42,296 [MainThread  ] Experiment debug
+2020-04-26 02:28:42,297 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:28:42,297 [MainThread  ] Start creating tasks
+2020-04-26 02:28:42,297 [MainThread  ] Start loading data
+2020-04-26 02:28:42,297 [MainThread  ] Loading custom_sup data
+2020-04-26 02:28:42,710 [MainThread  ] Start creating models
+2020-04-26 02:28:44,029 [MainThread  ] Loaded supervised model
+2020-04-26 02:28:44,035 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:28:44,035 [MainThread  ] Start training custom_sup
+2020-04-26 02:29:44,605 [MainThread  ] Experiment debug
+2020-04-26 02:29:44,606 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:29:44,606 [MainThread  ] Start creating tasks
+2020-04-26 02:29:44,606 [MainThread  ] Start loading data
+2020-04-26 02:29:44,606 [MainThread  ] Loading custom_sup data
+2020-04-26 02:29:45,031 [MainThread  ] Start creating models
+2020-04-26 02:29:46,367 [MainThread  ] Loaded supervised model
+2020-04-26 02:29:46,375 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:29:46,375 [MainThread  ] Start training custom_sup
+2020-04-26 02:30:02,819 [MainThread  ] Experiment debug
+2020-04-26 02:30:02,819 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:30:02,820 [MainThread  ] Start creating tasks
+2020-04-26 02:30:02,820 [MainThread  ] Start loading data
+2020-04-26 02:30:02,820 [MainThread  ] Loading custom_sup data
+2020-04-26 02:30:03,251 [MainThread  ] Start creating models
+2020-04-26 02:30:04,562 [MainThread  ] Loaded supervised model
+2020-04-26 02:30:04,570 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:30:04,570 [MainThread  ] Start training custom_sup
+2020-04-26 02:30:36,907 [MainThread  ] Experiment debug
+2020-04-26 02:30:36,908 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:30:36,908 [MainThread  ] Start creating tasks
+2020-04-26 02:30:36,908 [MainThread  ] Start loading data
+2020-04-26 02:30:36,909 [MainThread  ] Loading custom_sup data
+2020-04-26 02:30:37,350 [MainThread  ] Start creating models
+2020-04-26 02:30:38,673 [MainThread  ] Loaded supervised model
+2020-04-26 02:30:38,679 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:30:38,680 [MainThread  ] Start training custom_sup
+2020-04-26 02:30:59,071 [MainThread  ] Experiment debug
+2020-04-26 02:30:59,072 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:30:59,072 [MainThread  ] Start creating tasks
+2020-04-26 02:30:59,073 [MainThread  ] Start loading data
+2020-04-26 02:30:59,073 [MainThread  ] Loading custom_sup data
+2020-04-26 02:30:59,718 [MainThread  ] Start creating models
+2020-04-26 02:31:01,812 [MainThread  ] Loaded supervised model
+2020-04-26 02:31:01,817 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:31:01,818 [MainThread  ] Start training custom_sup
+2020-04-26 02:31:18,788 [MainThread  ] Experiment debug
+2020-04-26 02:31:18,789 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:31:18,789 [MainThread  ] Start creating tasks
+2020-04-26 02:31:18,789 [MainThread  ] Start loading data
+2020-04-26 02:31:18,789 [MainThread  ] Loading custom_sup data
+2020-04-26 02:31:19,284 [MainThread  ] Start creating models
+2020-04-26 02:31:20,650 [MainThread  ] Loaded supervised model
+2020-04-26 02:31:20,656 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:31:20,657 [MainThread  ] Start training custom_sup
+2020-04-26 02:32:41,106 [MainThread  ] Experiment debug
+2020-04-26 02:32:41,106 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:32:41,106 [MainThread  ] Start creating tasks
+2020-04-26 02:32:41,106 [MainThread  ] Start loading data
+2020-04-26 02:32:41,106 [MainThread  ] Loading custom_sup data
+2020-04-26 02:32:41,523 [MainThread  ] Start creating models
+2020-04-26 02:32:42,858 [MainThread  ] Loaded supervised model
+2020-04-26 02:32:42,865 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:32:42,866 [MainThread  ] Start training custom_sup
+2020-04-26 02:33:21,404 [MainThread  ] Experiment debug
+2020-04-26 02:33:21,405 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:33:21,405 [MainThread  ] Start creating tasks
+2020-04-26 02:33:21,406 [MainThread  ] Start loading data
+2020-04-26 02:33:21,406 [MainThread  ] Loading custom_sup data
+2020-04-26 02:33:21,836 [MainThread  ] Start creating models
+2020-04-26 02:33:23,754 [MainThread  ] Loaded supervised model
+2020-04-26 02:33:23,772 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:33:23,784 [MainThread  ] Start training custom_sup
+2020-04-26 02:35:05,457 [MainThread  ] Experiment debug
+2020-04-26 02:35:05,458 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:35:05,458 [MainThread  ] Start creating tasks
+2020-04-26 02:35:05,458 [MainThread  ] Start loading data
+2020-04-26 02:35:05,458 [MainThread  ] Loading custom_sup data
+2020-04-26 02:35:05,865 [MainThread  ] Start creating models
+2020-04-26 02:35:07,179 [MainThread  ] Loaded supervised model
+2020-04-26 02:35:07,187 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:35:07,188 [MainThread  ] Start training custom_sup
+2020-04-26 02:35:53,682 [MainThread  ] Experiment debug
+2020-04-26 02:35:53,683 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:35:53,683 [MainThread  ] Start creating tasks
+2020-04-26 02:35:53,683 [MainThread  ] Start loading data
+2020-04-26 02:35:53,683 [MainThread  ] Loading custom_sup data
+2020-04-26 02:35:54,087 [MainThread  ] Start creating models
+2020-04-26 02:35:55,389 [MainThread  ] Loaded supervised model
+2020-04-26 02:35:55,395 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:35:55,395 [MainThread  ] Start training custom_sup
+2020-04-26 02:36:22,748 [MainThread  ] Experiment debug
+2020-04-26 02:36:22,748 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:36:22,749 [MainThread  ] Start creating tasks
+2020-04-26 02:36:22,749 [MainThread  ] Start loading data
+2020-04-26 02:36:22,750 [MainThread  ] Loading custom_sup data
+2020-04-26 02:36:23,600 [MainThread  ] Start creating models
+2020-04-26 02:36:25,680 [MainThread  ] Loaded supervised model
+2020-04-26 02:36:25,686 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:36:25,687 [MainThread  ] Start training custom_sup
+2020-04-26 02:37:38,704 [MainThread  ] Experiment debug
+2020-04-26 02:37:38,704 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 02:37:38,705 [MainThread  ] Start creating tasks
+2020-04-26 02:37:38,705 [MainThread  ] Start loading data
+2020-04-26 02:37:38,705 [MainThread  ] Loading custom_sup data
+2020-04-26 02:37:39,105 [MainThread  ] Start creating models
+2020-04-26 02:37:40,366 [MainThread  ] Loaded supervised model
+2020-04-26 02:37:40,371 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 02:37:40,372 [MainThread  ] Start training custom_sup
+2020-04-26 03:01:07,072 [MainThread  ] Experiment debug
+2020-04-26 03:01:07,073 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:01:07,073 [MainThread  ] Start creating tasks
+2020-04-26 03:01:07,073 [MainThread  ] Start loading data
+2020-04-26 03:01:07,073 [MainThread  ] Loading custom_sup data
+2020-04-26 03:01:07,558 [MainThread  ] Start creating models
+2020-04-26 03:01:09,057 [MainThread  ] Loaded supervised model
+2020-04-26 03:01:09,070 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:01:09,073 [MainThread  ] Start training custom_sup
+2020-04-26 03:27:15,824 [MainThread  ] Experiment debug
+2020-04-26 03:27:15,825 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:27:15,826 [MainThread  ] Start creating tasks
+2020-04-26 03:27:15,826 [MainThread  ] Start loading data
+2020-04-26 03:27:15,826 [MainThread  ] Loading custom_sup data
+2020-04-26 03:27:16,328 [MainThread  ] Start creating models
+2020-04-26 03:27:17,770 [MainThread  ] Loaded supervised model
+2020-04-26 03:27:17,778 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:27:17,779 [MainThread  ] Start training custom_sup
+2020-04-26 03:28:01,275 [MainThread  ] Experiment debug
+2020-04-26 03:28:01,276 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:28:01,276 [MainThread  ] Start creating tasks
+2020-04-26 03:28:01,277 [MainThread  ] Start loading data
+2020-04-26 03:28:01,277 [MainThread  ] Loading custom_sup data
+2020-04-26 03:28:02,003 [MainThread  ] Start creating models
+2020-04-26 03:28:03,490 [MainThread  ] Loaded supervised model
+2020-04-26 03:28:03,500 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:28:03,501 [MainThread  ] Start training custom_sup
+2020-04-26 03:28:20,851 [MainThread  ] Experiment debug
+2020-04-26 03:28:20,852 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:28:20,853 [MainThread  ] Start creating tasks
+2020-04-26 03:28:20,853 [MainThread  ] Start loading data
+2020-04-26 03:28:20,853 [MainThread  ] Loading custom_sup data
+2020-04-26 03:28:21,282 [MainThread  ] Start creating models
+2020-04-26 03:28:22,586 [MainThread  ] Loaded supervised model
+2020-04-26 03:28:22,592 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:28:22,593 [MainThread  ] Start training custom_sup
+2020-04-26 03:29:04,037 [MainThread  ] Experiment debug
+2020-04-26 03:29:04,037 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:29:04,037 [MainThread  ] Start creating tasks
+2020-04-26 03:29:04,037 [MainThread  ] Start loading data
+2020-04-26 03:29:04,037 [MainThread  ] Loading custom_sup data
+2020-04-26 03:29:04,467 [MainThread  ] Start creating models
+2020-04-26 03:29:05,796 [MainThread  ] Loaded supervised model
+2020-04-26 03:29:05,804 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:29:05,805 [MainThread  ] Start training custom_sup
+2020-04-26 03:29:32,385 [MainThread  ] Experiment debug
+2020-04-26 03:29:32,386 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:29:32,386 [MainThread  ] Start creating tasks
+2020-04-26 03:29:32,386 [MainThread  ] Start loading data
+2020-04-26 03:29:32,387 [MainThread  ] Loading custom_sup data
+2020-04-26 03:29:32,817 [MainThread  ] Start creating models
+2020-04-26 03:29:34,168 [MainThread  ] Loaded supervised model
+2020-04-26 03:29:34,176 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:29:34,177 [MainThread  ] Start training custom_sup
+2020-04-26 03:29:59,033 [MainThread  ] Experiment debug
+2020-04-26 03:29:59,033 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:29:59,035 [MainThread  ] Start creating tasks
+2020-04-26 03:29:59,035 [MainThread  ] Start loading data
+2020-04-26 03:29:59,036 [MainThread  ] Loading custom_sup data
+2020-04-26 03:29:59,561 [MainThread  ] Start creating models
+2020-04-26 03:30:01,024 [MainThread  ] Loaded supervised model
+2020-04-26 03:30:01,031 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:30:01,032 [MainThread  ] Start training custom_sup
+2020-04-26 03:30:59,105 [MainThread  ] Experiment debug
+2020-04-26 03:30:59,105 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:30:59,106 [MainThread  ] Start creating tasks
+2020-04-26 03:30:59,106 [MainThread  ] Start loading data
+2020-04-26 03:30:59,106 [MainThread  ] Loading custom_sup data
+2020-04-26 03:30:59,514 [MainThread  ] Start creating models
+2020-04-26 03:31:00,784 [MainThread  ] Loaded supervised model
+2020-04-26 03:31:00,789 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:31:00,790 [MainThread  ] Start training custom_sup
+2020-04-26 03:32:09,123 [MainThread  ] Experiment debug
+2020-04-26 03:32:09,124 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:32:09,126 [MainThread  ] Start creating tasks
+2020-04-26 03:32:09,126 [MainThread  ] Start loading data
+2020-04-26 03:32:09,126 [MainThread  ] Loading custom_sup data
+2020-04-26 03:32:09,816 [MainThread  ] Start creating models
+2020-04-26 03:32:11,206 [MainThread  ] Loaded supervised model
+2020-04-26 03:32:11,212 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:32:11,212 [MainThread  ] Start training custom_sup
+2020-04-26 03:33:09,269 [MainThread  ] Experiment debug
+2020-04-26 03:33:09,270 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:33:09,270 [MainThread  ] Start creating tasks
+2020-04-26 03:33:09,270 [MainThread  ] Start loading data
+2020-04-26 03:33:09,270 [MainThread  ] Loading custom_sup data
+2020-04-26 03:33:09,668 [MainThread  ] Start creating models
+2020-04-26 03:33:10,962 [MainThread  ] Loaded supervised model
+2020-04-26 03:33:10,972 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:33:10,972 [MainThread  ] Start training custom_sup
+2020-04-26 03:33:54,150 [MainThread  ] Experiment debug
+2020-04-26 03:33:54,150 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:33:54,150 [MainThread  ] Start creating tasks
+2020-04-26 03:33:54,150 [MainThread  ] Start loading data
+2020-04-26 03:33:54,150 [MainThread  ] Loading custom_sup data
+2020-04-26 03:33:54,571 [MainThread  ] Start creating models
+2020-04-26 03:33:56,076 [MainThread  ] Loaded supervised model
+2020-04-26 03:33:56,081 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:33:56,082 [MainThread  ] Start training custom_sup
+2020-04-26 03:34:25,395 [MainThread  ] Experiment debug
+2020-04-26 03:34:25,395 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:34:25,395 [MainThread  ] Start creating tasks
+2020-04-26 03:34:25,395 [MainThread  ] Start loading data
+2020-04-26 03:34:25,396 [MainThread  ] Loading custom_sup data
+2020-04-26 03:34:25,939 [MainThread  ] Start creating models
+2020-04-26 03:34:27,343 [MainThread  ] Loaded supervised model
+2020-04-26 03:34:27,349 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:34:27,349 [MainThread  ] Start training custom_sup
+2020-04-26 03:35:18,795 [MainThread  ] train batch 1 / 1260 (iter 1), current average result {'loss': tensor(0.8596, grad_fn=<DivBackward0>), 'acc': tensor(0.)}
+2020-04-26 03:35:46,892 [MainThread  ] Experiment debug
+2020-04-26 03:35:46,892 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:35:46,892 [MainThread  ] Start creating tasks
+2020-04-26 03:35:46,894 [MainThread  ] Start loading data
+2020-04-26 03:35:46,894 [MainThread  ] Loading custom_sup data
+2020-04-26 03:35:47,403 [MainThread  ] Start creating models
+2020-04-26 03:35:49,031 [MainThread  ] Loaded supervised model
+2020-04-26 03:35:49,078 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:35:49,078 [MainThread  ] Start training custom_sup
+2020-04-26 03:36:48,965 [MainThread  ] Experiment debug
+2020-04-26 03:36:48,965 [MainThread  ] Receive config Namespace(batch_size=2, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='../data', device='cpu', dup_pos=0, exp_dir='../results/debug', exp_name='debug', finetune_ckpt_interval=0, finetune_learning_rate=0.0001, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=0.0001, image_folder='../../../data/data/', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet50', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_sample'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=0.0001, project_dim=128, report_interval=1, results_dir='../results', sampling_type='sample', synthesizer_nlayers=1, transfer_paradigm='tunable', view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-26 03:36:48,965 [MainThread  ] Start creating tasks
+2020-04-26 03:36:48,965 [MainThread  ] Start loading data
+2020-04-26 03:36:48,965 [MainThread  ] Loading custom_sup data
+2020-04-26 03:36:49,364 [MainThread  ] Start creating models
+2020-04-26 03:36:50,618 [MainThread  ] Loaded supervised model
+2020-04-26 03:36:50,623 [MainThread  ] Setup trainer for custom_sup
+2020-04-26 03:36:50,624 [MainThread  ] Start training custom_sup
+2020-04-26 03:37:39,059 [MainThread  ] train batch 1 / 1260 (iter 1), current average result {'loss': tensor(0.8597, grad_fn=<DivBackward0>), 'acc': tensor(0.)}
+2020-04-26 03:38:29,150 [MainThread  ] train batch 2 / 1260 (iter 2), current average result {'loss': tensor(0.8633, grad_fn=<DivBackward0>), 'acc': tensor(0.)}
+2020-04-26 03:39:08,286 [MainThread  ] train batch 3 / 1260 (iter 3), current average result {'loss': tensor(0.8635, grad_fn=<DivBackward0>), 'acc': tensor(0.)}
+2020-04-26 03:39:46,956 [MainThread  ] train batch 4 / 1260 (iter 4), current average result {'loss': tensor(0.8643, grad_fn=<DivBackward0>), 'acc': tensor(0.)}
+2020-04-26 03:40:27,559 [MainThread  ] train batch 5 / 1260 (iter 5), current average result {'loss': tensor(0.8631, grad_fn=<DivBackward0>), 'acc': tensor(0.)}
+2020-04-26 03:41:07,568 [MainThread  ] train batch 6 / 1260 (iter 6), current average result {'loss': tensor(0.8639, grad_fn=<DivBackward0>), 'acc': tensor(0.)}

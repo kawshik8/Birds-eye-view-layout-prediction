@@ -31,7 +31,7 @@ parser.add_argument(
 parser.add_argument(
     "--image-pretrain-obj",
     type=str,
-    default=None,#"pirl_nce_loss",
+    default="none",#"pirl_nce_loss",
     choices=["pirl_nce_loss", "pirl_infonce_loss", "multilabel_loss","none"],
     help="pretrain image based task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
@@ -39,7 +39,7 @@ parser.add_argument(
 parser.add_argument(
     "--view-pretrain-obj",
     type=str,
-    default=None,
+    default="none",
     choices=["det_masked_autoencoder","var_masked_autoencoder","adv_masked_autoencoder", "nce_loss", "infonce_loss","none"],
     help="pretrain view based task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
@@ -252,7 +252,7 @@ parser.add_argument(
 parser.add_argument(
     "--transfer-paradigm",
     type=str,
-    default="frozen",
+    default="tunable",
     choices=["frozen", "tunable", "bound"],
     help="""frozen: use fixed representation,
             tunable: finetune the whole model,

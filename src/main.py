@@ -21,8 +21,10 @@ def main(args):
     pretrain_task = [get_task(taskname, args) for taskname in args.pretrain_task]
     finetune_tasks = [get_task(taskname, args) for taskname in args.finetune_tasks]
     log.info("Start loading data")
-    for task in pretrain_task:
-        task.load_data()
+
+    if args.image_pretrain_obj != "none" and args.view_pretrain_obj != "none":
+        for task in pretrain_task:
+            task.load_data()
     for task in finetune_tasks:
         task.load_data()
 
