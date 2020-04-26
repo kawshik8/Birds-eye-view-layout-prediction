@@ -61,6 +61,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--detect-objects",
+    type=bool,
+    default="True",
+    help="train object detection as well?",
+)
+
+parser.add_argument(
     "--view-fusion_strategy",
     type=str,
     default="concat",
