@@ -97,7 +97,7 @@ class Trainer(object):
                 if self.args.clip != 0:
                     torch.nn.utils.clip_grad_norm_(all_param, self.args.clip)
                 self.optimizer.step()
-                self.scheduler.step()
+                
                 self.training_infos["current_iter"] += 1
                 if self.training_infos["current_iter"] % self.report_interval == 0:
                     log.info(
@@ -125,6 +125,7 @@ class Trainer(object):
                             self.model,
                         )
                     self.model.train()
+                    self.scheduler.step(metrics=eval_scores["loss"],epoch=epoch)
                 if (
                     self.ckpt_interval > 0
                     and self.training_infos["current_iter"] % self.ckpt_interval == 0
