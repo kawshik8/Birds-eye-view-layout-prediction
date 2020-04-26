@@ -612,7 +612,7 @@ class ViewGenModels(ViewModel):
 
             # if self.training:
                 # print(classification.shape, regression.shape, anchors.shape, annotations.shape)
-            batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
+            batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification.to(device), regression.to(device), anchors.to(device), annotations.to(device))
             batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
                 # print(batch_output["loss"].shape)
 
