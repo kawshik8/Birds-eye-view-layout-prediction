@@ -613,13 +613,16 @@ class ViewGenModels(ViewModel):
 
             # if self.training:
                 # print(classification.shape, regression.shape, anchors.shape, annotations.shape)
-            batch_output["classes"] = classification
-            batch_output["boxes"] = regression
+            
             batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification.to(device), regression.to(device), anchors.to(device), annotations.to(device))
             batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
                 # print(batch_output["loss"].shape)
 
-            if not self.training:
+            if self.training:
+                batch_output["classes"] = classification
+                batch_output["boxes"] = regression
+                
+            else:
 
                 # print(anchors.shape,regression.shape)
                 transformed_anchors = self.regressBoxes(anchors, regression)
@@ -645,6 +648,11 @@ class ViewGenModels(ViewModel):
 
                 # print(classification.shape, classification[0, anchors_nms_idx, :].shape)
                 nms_scores, nms_class = classification[0, anchors_nms_idx, :].max(dim=1)
+                
+                print(nms_scores.shape,nms_class.shape)
+                
+                batch_output["classes"] = classification
+                batch_output["boxes"] = regression
 
                 # return [nms_scores, nms_class, transformed_anchors[0, anchors_nms_idx, :]]
 

@@ -21,7 +21,8 @@ def compute_ts_road_map(road_map1, road_map2):
 
 args = parser.parse_args()
 process_args(args)
-args.finetune_obj = "var_encoder"
+args.detect_objects = True
+args.finetune_obj = "det_encoder"
 args.road_map_loss = "bce"
 
 model = get_model("sup", args)
@@ -30,7 +31,11 @@ print(args.road_map_loss,args.finetune_obj)
 files = os.listdir("../../../sub_models1/results/")
 print(files)
 
-file = [file for file in files if args.road_map_loss in file and args.finetune_obj.split("_")[0] in file]
+if args.detect_objects:
+    file = [file for file in files if args.road_map_loss in file and args.finetune_obj.split("_")[0] in file and "obj" in file]
+else:
+    file = [file for file in files if args.road_map_loss in file and args.finetune_obj.split("_")[0] in file]
+
 print(file)
 
 model.load_state_dict(torch.load("../../../sub_models1/results/" + str(file[0]) + "/finetune_custom_sup_best.ckpt", map_location=torch.device('cpu')))
@@ -82,7 +87,11 @@ for batch, inputs in enumerate(trainloader):
 
         batch_output = model(batch_input)
         
+        boxes = batch_output["boxes"]
+        classes = batch_output["classes"]
         
+        print(boxes.shape)
+        print(classes.shape)
         
         road = road.view(256,256)
 #         road[road >= 0.5] = 1
