@@ -377,7 +377,7 @@ class ViewGenModels(ViewModel):
 
             self.loss_type = "mse"
 
-
+        self.loss_type = self.args.road_map_loss
         if self.loss_type == "mse":
             self.criterion = torch.nn.MSELoss()
         elif self.loss_type == "bce":
