@@ -142,7 +142,9 @@ class LabeledDataset(torch.utils.data.Dataset):
         road_image = convert_map_to_road_map(ego_image)
         road_image = self.transform["road"](road_image.type(torch.FloatTensor))
 
+#         print(torch.as_tensor(corners).view(-1, 2, 4).transpose(1,2).flatten(1,2))
         bounding_box = torch.as_tensor(corners).view(-1, 2, 4).transpose(1,2).flatten(1,2)
+       
         bbox = torch.zeros(bounding_box.shape[0],4)
         # print(bbox.shape, bounding_box.shape)
         bbox[:, 0:2] = bounding_box[:, 4:6]
