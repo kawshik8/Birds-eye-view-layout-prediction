@@ -61,6 +61,14 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--road-map-loss",
+    type=str,
+    default="bce",
+    choices=["bce","mse"],
+    help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
+)
+
+parser.add_argument(
     "--detect-objects",
     type=bool,
     default="True",
