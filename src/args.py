@@ -71,7 +71,7 @@ parser.add_argument(
 parser.add_argument(
     "--detect-objects",
     type=bool,
-    default="True",
+    default="False",
     help="train object detection as well?",
 )
 
@@ -95,7 +95,7 @@ parser.add_argument(
 parser.add_argument(
     "--synthesizer-nlayers",
     type=int,
-    default=1,
+    default=2,
     help="number of layers in synthesizer (0 indicates no synthesizer)",
 )
 
@@ -103,7 +103,7 @@ parser.add_argument(
 parser.add_argument(
     "--network-base",
     type=str,
-    default="resnet18",
+    default="resnet50",
     choices=["resnet18", "resnet34", "resnet50", "resnet101","resnet152"],
     help="base model to train",
 )

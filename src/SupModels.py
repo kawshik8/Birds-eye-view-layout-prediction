@@ -557,7 +557,7 @@ class ViewGenModels(ViewModel):
             # print(mapped_image.shape, road_map.shape)
 
             batch_output["recon_loss"] = self.criterion(mapped_image, road_map)
-            
+            batch_output["road_map"] = mapped_image
             batch_output["acc"] = (mapped_image == road_map).float().mean()
             batch_output["loss"] += batch_output["recon_loss"]
 
@@ -578,6 +578,7 @@ class ViewGenModels(ViewModel):
             reconstruction_loss = self.criterion(generated_image, road_map)
             kl_divergence_loss = 0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2))
 
+            batch_output["road_map"] = generated_image
             batch_output["recon_loss"] = reconstruction_loss
             batch_output["KLD_loss"] = kl_divergence_loss
             batch_output["acc"] = (generated_image == road_map).float().mean()
@@ -612,6 +613,8 @@ class ViewGenModels(ViewModel):
 
             # if self.training:
                 # print(classification.shape, regression.shape, anchors.shape, annotations.shape)
+            batch_output["classes"] = classification
+            batch_output["boxes"] = regression
             batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification.to(device), regression.to(device), anchors.to(device), annotations.to(device))
             batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
                 # print(batch_output["loss"].shape)
