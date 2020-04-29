@@ -11,6 +11,7 @@ from itertools import permutations,combinations
 from torch.nn.modules.module import Module
 from utils import Anchors, BBoxTransform, ClipBoxes, block, Resblock
 import losses
+from losses import compute_ts_road_map, compute_ats_bounding_boxes
 import math
 import logging as log
 
@@ -294,15 +295,13 @@ class ViewGenModels(ViewModel):
         self.obj_detection_head = self.args.obj_det_head
         self.num_classes = 9
 
-        self.gen_roadmap = True
+        self.gen_roadmap = self.args.gen_road_map
         self.detect_objects = self.args.detect_objects
 
         self.fusion = self.args.view_fusion_strategy
 
         self.n_blobs = 3
         
-
-        self.channel_projections = nn.ModuleDict()
         self.obj_detection_head = "retinanet"
 
         if self.d_model > 1024:
@@ -314,99 +313,94 @@ class ViewGenModels(ViewModel):
         self.model_type = self.args.finetune_obj.split("_")[0]
 
         self.input_dim = 256
-   
-        self.reduce = nn.Conv2d(6 * self.d_model, self.d_model, kernel_size = 1, stride = 1)
+
+        self.blobs_strategy = self.args.blobs_strategy
+
+        if self.gen_roadmap or (self.detect_objects and "decoder" in self.blobs_strategy):
+            self.reduce = nn.Conv2d(6 * self.d_model, self.d_model, kernel_size = 1, stride = 1)
 
         out_dim = 1
 
-        if self.model_type == "det":
+        if self.gen_roadmap:
 
-            decoder_network_layers = []
+            if self.model_type == "det":
 
-            decoder_network_layers.append(
-                block(int(self.d_model), int(self.max_f), 2, 2, 0)
-            )
+                decoder_network_layers = []
 
-            init_layer_dim = int(self.input_dim // 16)
-            init_channel_dim = self.max_f
-
-            while init_layer_dim < self.input_dim:
-                decoder_network_layers.append( 
-                    block(int(init_channel_dim), int(init_channel_dim // 2), 2, 2, 0),
+                decoder_network_layers.append(
+                    block(int(self.d_model), int(self.max_f), 2, 2, 0)
                 )
-                init_layer_dim *= 2
-                init_channel_dim = init_channel_dim / 2
 
-            decoder_network_layers.append(
-                block(int(init_channel_dim), out_dim, 3, 1, 1, "sigmoid", False, False),
-            )
+                init_layer_dim = int(self.input_dim // 16)
+                init_channel_dim = self.max_f
 
-            self.decoder_network =  nn.Sequential(*decoder_network_layers)
+                while init_layer_dim < self.input_dim:
+                    decoder_network_layers.append( 
+                        block(int(init_channel_dim), int(init_channel_dim // 2), 2, 2, 0),
+                    )
+                    init_layer_dim *= 2
+                    init_channel_dim = init_channel_dim / 2
 
-            self.decoding = nn.Sequential(self.decoder_network, self.reduce)
-
-            self.loss_type = "bce"
-
-        else:
-            
-            self.latent_dim = self.args.latent_dim
-            decoder_network_layers = []
-            decoder_network_layers.append(
-                block(int(self.latent_dim), int(self.max_f), 4, 1, 0, "leakyrelu"),
-            )
-            
-            init_layer_dim = 4
-            init_channel_dim = self.max_f
-            while init_layer_dim < self.input_dim:
-                decoder_network_layers.append( 
-                    block(int(init_channel_dim), int(init_channel_dim // 2), 4, 2, 1, "leakyrelu"),
+                decoder_network_layers.append(
+                    block(int(init_channel_dim), out_dim, 3, 1, 1, "sigmoid", False, False),
                 )
-                init_layer_dim *= 2
-                init_channel_dim = init_channel_dim / 2
-            
-            
-            decoder_network_layers.append(
-                block(int(init_channel_dim), 1, 3, 1, 1, "sigmoid", False, False),
-            )
 
-            self.decoder_network = nn.Sequential(*decoder_network_layers)
+                self.decoder_network =  nn.Sequential(*decoder_network_layers)
 
-            self.z_project = nn.Linear(self.d_model, 2*self.latent_dim)
-            # self.reduce = nn.Linear((6-self.mask_ninps) * self.d_model, self.d_model)
-            self.decoding = nn.Sequential(self.decoder_network, self.z_project, self.reduce)
+                self.decoding = nn.Sequential(self.decoder_network, self.reduce)
 
-            self.loss_type = "mse"
+                self.loss_type = "bce"
 
-        self.loss_type = self.args.road_map_loss
-        if self.loss_type == "mse":
-            self.criterion = torch.nn.MSELoss()
-        elif self.loss_type == "bce":
-            self.criterion = torch.nn.BCELoss()
+            else:
+                
+                self.latent_dim = self.args.latent_dim
+                decoder_network_layers = []
+                decoder_network_layers.append(
+                    block(int(self.latent_dim), int(self.max_f), 4, 1, 0, "leakyrelu"),
+                )
+                
+                init_layer_dim = 4
+                init_channel_dim = self.max_f
+                while init_layer_dim < self.input_dim:
+                    decoder_network_layers.append( 
+                        block(int(init_channel_dim), int(init_channel_dim // 2), 4, 2, 1, "leakyrelu"),
+                    )
+                    init_layer_dim *= 2
+                    init_channel_dim = init_channel_dim / 2
+                
+                
+                decoder_network_layers.append(
+                    block(int(init_channel_dim), 1, 3, 1, 1, "sigmoid", False, False),
+                )
+
+                self.decoder_network = nn.Sequential(*decoder_network_layers)
+
+                self.z_project = nn.Linear(self.d_model, 2*self.latent_dim)
+                # self.reduce = nn.Linear((6-self.mask_ninps) * self.d_model, self.d_model)
+                self.decoding = nn.Sequential(self.decoder_network, self.z_project, self.reduce)
+
+                self.loss_type = "mse"
+
+            self.loss_type = self.args.road_map_loss
+            if self.loss_type == "mse":
+                self.criterion = torch.nn.MSELoss()
+            elif self.loss_type == "bce":
+                self.criterion = torch.nn.BCELoss()
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1,1))
 
         self.n_synthesize = 1
 
-        if self.n_synthesize > 0:
+    
+        if self.n_synthesize > 0 and self.gen_roadmap or (self.detect_objects and "decoder" in self.blobs_strategy):
             synthesizer_layers = []
             for i in range(self.n_synthesize):
                 synthesizer_layers.append(Resblock(self.d_model,self.d_model, 3, 1, 1))
             
             self.synthesizer = nn.Sequential(*synthesizer_layers)
 
-            self.pretrain_network = nn.Sequential(
-            self.image_network,
-            self.synthesizer,
-            self.decoding,
-            )
 
-        else:
-            self.pretrain_network = nn.Sequential(
-            self.image_network,
-            self.decoding,
-            )
-
-        self.blobs_strategy = self.args.blobs_strategy
+       
         
         if "retinanet" in self.obj_detection_head and self.detect_objects:
 
@@ -476,10 +470,17 @@ class ViewGenModels(ViewModel):
 
         self.sigmoid = nn.Sigmoid()
         self.shared_params = list(self.image_network.parameters())
-        self.pretrain_params = list(self.reduce.parameters()) + list(self.decoding.parameters()) + list(self.synthesizer.parameters())
+
+        if self.n_synthesize > 0 and self.gen_roadmap or (self.detect_objects and "decoder" in self.blobs_strategy):
+            self.shared_params += list(self.synthesizer.parameters())
+
+        if self.gen_roadmap:
+            self.shared_params += list(self.decoding.parameters())
         #self.shared_params += list(self.attention_pooling.parameters())
         # self.pretrain_params = list(self.reduce.parameters()) + list(self.project1.parameters()) + list(self.project2.parameters())
-        self.finetune_params = list(self.obj_detection_model.parameters())
+        if self.detect_objects:
+            self.finetune_params = list(self.obj_detection_model.parameters())
+
 
     def reparameterize(self, mu, logvar):
 
@@ -540,49 +541,52 @@ class ViewGenModels(ViewModel):
 
         batch_output["loss"] = 0
 
-        if self.fusion == "concat":
-            fusion = self.reduce(views.flatten(1,2))
+        if self.gen_roadmap or (self.detect_objects and "decoder" in self.blobs_strategy):
+            if self.fusion == "concat":
+                fusion = self.reduce(views.flatten(1,2))
 
-        else:#if self.fusion == "mean":
-            fusion = views.mean(dim=1)
+            else:#if self.fusion == "mean":
+                fusion = views.mean(dim=1)
 
-        if self.n_synthesize > 0:
-            fusion = self.synthesizer(fusion)
+            if self.n_synthesize > 0:
+                fusion = self.synthesizer(fusion)
         
         # print("fusion:", fusion.shape)
 
-        if "det" in self.model_type:
-            # print("here")
-            mapped_image = self.decoder_network(fusion)
-            # print(mapped_image.shape, road_map.shape)
+        if self.gen_roadmap:
+            if "det" in self.model_type:
+                # print("here")
+                mapped_image = self.decoder_network(fusion)
+                # print(mapped_image.shape, road_map.shape)
 
-            batch_output["recon_loss"] = self.criterion(mapped_image, road_map)
-            batch_output["road_map"] = mapped_image
-            batch_output["acc"] = (mapped_image == road_map).float().mean()
-            batch_output["loss"] += batch_output["recon_loss"]
+                batch_output["recon_loss"] = self.criterion(mapped_image, road_map)
+                batch_output["road_map"] = mapped_image
+                batch_output["ts_road_map"] = compute_ts_road_map(mapped_image,road_map)
 
-        else:
+                batch_output["loss"] += batch_output["recon_loss"]
 
-            pool = self.avg_pool(fusion).view(bs,self.d_model)
+            else:
 
-            mu_logvar = self.z_project(pool).view(bs,2,-1)
+                pool = self.avg_pool(fusion).view(bs,self.d_model)
 
-            mu = mu_logvar[:,0]
-            logvar = mu_logvar[:,1]
+                mu_logvar = self.z_project(pool).view(bs,2,-1)
 
-            z = self.reparameterize(mu,logvar).view(bs,self.latent_dim,1,1)
+                mu = mu_logvar[:,0]
+                logvar = mu_logvar[:,1]
 
-            generated_image = self.decoder_network(z)
-            # print(generated_image.shape, mu.shape, logvar.shape)
+                z = self.reparameterize(mu,logvar).view(bs,self.latent_dim,1,1)
 
-            reconstruction_loss = self.criterion(generated_image, road_map)
-            kl_divergence_loss = 0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2))
+                generated_image = self.decoder_network(z)
+                # print(generated_image.shape, mu.shape, logvar.shape)
 
-            batch_output["road_map"] = generated_image
-            batch_output["recon_loss"] = reconstruction_loss
-            batch_output["KLD_loss"] = kl_divergence_loss
-            batch_output["acc"] = (generated_image == road_map).float().mean()
-            batch_output["loss"] += batch_output["recon_loss"] + batch_output["KLD_loss"]
+                reconstruction_loss = self.criterion(generated_image, road_map)
+                kl_divergence_loss = 0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2))
+
+                batch_output["road_map"] = generated_image
+                batch_output["recon_loss"] = reconstruction_loss
+                batch_output["KLD_loss"] = kl_divergence_loss
+                batch_output["ts_road_map"] = compute_ts_road_map(generated_image,road_map)
+                batch_output["loss"] += batch_output["recon_loss"] + batch_output["KLD_loss"]
 
         if self.detect_objects:
 
@@ -616,6 +620,7 @@ class ViewGenModels(ViewModel):
             
             batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification.to(device), regression.to(device), anchors.to(device), annotations.to(device))
             batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
+            # batch_output["ts_obj_det"] = compute_ats_bounding_boxes()
                 # print(batch_output["loss"].shape)
 
             if self.training:
@@ -649,7 +654,7 @@ class ViewGenModels(ViewModel):
                 # print(classification.shape, classification[0, anchors_nms_idx, :].shape)
                 nms_scores, nms_class = classification[0, anchors_nms_idx, :].max(dim=1)
                 
-                print(nms_scores.shape,nms_class.shape)
+                # print(nms_scores.shape,nms_class.shape)
                 
                 batch_output["classes"] = classification
                 batch_output["boxes"] = regression

@@ -17,6 +17,11 @@ class Trainer(object):
         self.task = task
         self.stage = stage
 
+        if "loss" in self.task.eval_metric:
+            best = float('inf')
+        else:
+            best = float('-inf')
+
         self.training_infos = {"best_iter": -1, "best_performance": 0, "current_iter": 0}
         self.report_interval = args.report_interval
         if stage == "pretrain":

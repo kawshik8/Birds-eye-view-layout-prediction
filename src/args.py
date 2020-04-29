@@ -68,10 +68,18 @@ parser.add_argument(
     help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
 
+
+parser.add_argument(
+    "--gen-road-map",
+    type=int,
+    default=0,
+    help="train road map generation as well?",
+)
+
 parser.add_argument(
     "--detect-objects",
-    type=bool,
-    default="False",
+    type=int,
+    default=0,
     help="train object detection as well?",
 )
 
@@ -277,6 +285,8 @@ parser.add_argument(
 
 def process_args(args):
     # TODO: some asserts, check the arguments
+    args.gen_road_map = (args.gen_road_map==1)
+    args.detect_objects = (args.detect_objects==1)
     args.num_queries = round(args.num_queries_percentage * args.num_patches)
     args.pretrain_task = list(filter(lambda task: task != "none", [args.pretrain_task]))
 

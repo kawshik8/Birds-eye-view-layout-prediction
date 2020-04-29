@@ -246,7 +246,7 @@ class Task(object):
         # if pretrain:
         #     self.eval_metric = "acc"
         # else:
-        self.eval_metric = "acc"
+        self.eval_metric = "loss"
 
     def _get_transforms(self):
         """
@@ -339,12 +339,37 @@ class Task(object):
 
 
     def reset_scorers(self):
-        self.scorers = {"count": 0}
+        self.scorers = {"count" : 0} #"loss": [], "classification_loss": [], "detection_loss": [], "KLD_loss": [], "recon_loss":[], "acc": []}
+
         if self.pretrain:
             self.scorers.update({"loss": [], "acc": []})
+
             # TODO: Update this when new auxiliary losses are introduced
         else:
-            self.scorers.update({"loss": [], "acc": []})
+
+            self.scorers.update({"loss": [], "classification_loss": [], "detection_loss": [], "KLD_loss": [], "recon_loss":[], "ts_road_map":[]})
+
+            # print(self.scorers.keys())
+
+            # print(self.args.detect_objects, self.args.gen_road_map)
+
+            if not self.args.detect_objects:
+                print("inside 1")
+                for i in ["classification_loss", "detection_loss"]:
+                    del self.scorers[i]
+
+            if not self.args.gen_road_map:
+                for i in ["KLD_loss", "recon_loss", "ts_road_map"]:
+                    del self.scorers[i]
+
+            if "KLD_loss" in self.scorers.keys() and "var" not in self.args.finetune_obj:
+                del self.scorers["KLD_loss"]
+            
+           
+
+            # print(self.scorers.keys())
+            
+            
 
     def update_scorers(self, batch_input, batch_output):
         count = len(batch_input["idx"])
@@ -485,6 +510,7 @@ class CUSTOM(Task):
 
     def _load_raw_data(self):
 
+        np.random.seed(8)
         train_transform, eval_transform = self._get_transforms()
         if self.pretrain:
             scene_index = np.random.permutation(np.arange(106))
