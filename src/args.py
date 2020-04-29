@@ -231,14 +231,14 @@ parser.add_argument(
     "--pretrain-learning-rate", type=float, default=1e-2, help="learning rate for pretraining"
 )
 parser.add_argument(
-    "--finetune_learning_rate", type=float, default=1e-4, help="learning rate for finetuning"
+    "--finetune-learning-rate", type=float, default=1e-2, help="learning rate for finetuning"
 )
 # weight_decay
 parser.add_argument(
-    "--pretrain-weight-decay", type=float, default=1e-4, help="weight decay for pretraining"
+    "--pretrain-weight-decay", type=float, default=1e-5, help="weight decay for pretraining"
 )
 parser.add_argument(
-    "--finetune-weight-decay", type=float, default=1e-4, help="weight decay for finetuning"
+    "--finetune-weight-decay", type=float, default=1e-5, help="weight decay for finetuning"
 )
 # iters
 parser.add_argument(

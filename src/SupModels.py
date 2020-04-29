@@ -562,7 +562,6 @@ class ViewGenModels(ViewModel):
                 batch_output["recon_loss"] = self.criterion(mapped_image, road_map)
                 batch_output["road_map"] = mapped_image
                 batch_output["ts_road_map"] = compute_ts_road_map(mapped_image,road_map)
-
                 batch_output["loss"] += batch_output["recon_loss"]
 
             else:

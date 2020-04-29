@@ -22,7 +22,7 @@ class Trainer(object):
         else:
             best = float('-inf')
 
-        self.training_infos = {"best_iter": -1, "best_performance": 0, "current_iter": 0}
+        self.training_infos = {"best_iter": -1, "best_performance": best, "current_iter": 0}
         self.report_interval = args.report_interval
         if stage == "pretrain":
             self.total_iters = args.pretrain_total_iters

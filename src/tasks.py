@@ -247,6 +247,10 @@ class Task(object):
         #     self.eval_metric = "acc"
         # else:
         self.eval_metric = "loss"
+        # if self.pretrain:
+        #     self.eval_metric = "loss"
+        # else:
+        #     self.eval_metric = "ts"
 
     def _get_transforms(self):
         """
@@ -354,7 +358,7 @@ class Task(object):
             # print(self.args.detect_objects, self.args.gen_road_map)
 
             if not self.args.detect_objects:
-                print("inside 1")
+                # print("inside 1")
                 for i in ["classification_loss", "detection_loss"]:
                     del self.scorers[i]
 
