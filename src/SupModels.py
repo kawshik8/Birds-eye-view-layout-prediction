@@ -619,12 +619,14 @@ class ViewGenModels(ViewModel):
             
             batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification.to(device), regression.to(device), anchors.to(device), annotations.to(device))
             batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
+            
             # batch_output["ts_obj_det"] = compute_ats_bounding_boxes()
                 # print(batch_output["loss"].shape)
 
             if self.training:
                 batch_output["classes"] = classification
                 batch_output["boxes"] = regression
+                batch_output["ts_boxes"] = compute_ats_bounding_boxes(regression, bbox)
                 
             else:
 
@@ -653,10 +655,11 @@ class ViewGenModels(ViewModel):
                 # print(classification.shape, classification[0, anchors_nms_idx, :].shape)
                 nms_scores, nms_class = classification[0, anchors_nms_idx, :].max(dim=1)
                 
-                # print(nms_scores.shape,nms_class.shape)
+                print(nms_scores.shape,nms_class.shape)
                 
                 batch_output["classes"] = classification
                 batch_output["boxes"] = regression
+                batch_output["ts_boxes"] = compute_ats_bounding_boxes(regression, bbox)
 
                 # return [nms_scores, nms_class, transformed_anchors[0, anchors_nms_idx, :]]
 

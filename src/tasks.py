@@ -350,7 +350,7 @@ class Task(object):
             # TODO: Update this when new auxiliary losses are introduced
         else:
 
-            self.scorers.update({"loss": [], "classification_loss": [], "detection_loss": [], "KLD_loss": [], "recon_loss":[], "ts_road_map":[]})
+            self.scorers.update({"loss": [], "classification_loss": [], "detection_loss": [], "KLD_loss": [], "recon_loss":[], "ts_road_map":[], "ts_boxes":[]})
 
             # print(self.scorers.keys())
 
@@ -358,7 +358,7 @@ class Task(object):
 
             if not self.args.detect_objects:
                 # print("inside 1")
-                for i in ["classification_loss", "detection_loss"]:
+                for i in ["classification_loss", "detection_loss", "ts_boxes"]:
                     del self.scorers[i]
 
             if not self.args.gen_road_map:
