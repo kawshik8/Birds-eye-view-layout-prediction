@@ -22,7 +22,6 @@ def get_task(name, args):
     elif name == "cifar10_un":
         return CIFAR10(name, args, pretrain=True)
     elif name.startswith("cifar10_lp"):
-        print(float(name.replace("cifar10_lp", "").split("_")[0]) / 100)
         return CIFAR10(name, args, label_pct=float(name.replace("cifar10_lp", "").split("_")[0]) / 100)
     elif name.startswith("custom_un"):
         return CUSTOM(name, args, pretrain=True)
