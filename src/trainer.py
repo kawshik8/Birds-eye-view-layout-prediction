@@ -48,7 +48,7 @@ class Trainer(object):
         with torch.no_grad():
             for batch, inputs in enumerate(self.task.data_iterators[split]):
                 if self.stage == "pretrain":
-                    image, query, index = inputs
+                    index, image, query = inputs
                     batch_input = {"image":image,"query":query,"idx":index}
                 else:
                     index, image, bounding_box, classes, action, ego, road = inputs

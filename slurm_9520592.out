@@ -1,0 +1,27 @@
+2020-04-30 17:19:23,481 [MainThread  ] Experiment road_map_cvar512_bce
+2020-04-30 17:19:23,481 [MainThread  ] Receive config Namespace(batch_size=8, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='./data/', detect_objects=False, device='cuda:0', dup_pos=0, exp_dir='./results/road_map_cvar512_bce', exp_name='road_map_cvar512_bce', finetune_ckpt_interval=0, finetune_learning_rate=0.01, finetune_obj='var_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=200000, finetune_val_interval=2000, finetune_weight_decay=1e-05, gen_road_map=True, image_folder='/scratch/kk4161/DL_project/data', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=512, network_base='resnet18', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_image'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=1e-05, project_dim=128, report_interval=250, results_dir='./results/', road_map_loss='bce', sampling_type='image', synthesizer_nlayers=2, transfer_paradigm='tunable', use_memory_bank=1, view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-30 17:19:23,481 [MainThread  ] Start creating tasks
+2020-04-30 17:19:23,481 [MainThread  ] Start loading data
+2020-04-30 17:19:23,481 [MainThread  ] Loading custom_sup data
+2020-04-30 17:19:23,829 [MainThread  ] Start creating models
+2020-04-30 17:19:24,092 [MainThread  ] Loaded supervised model
+2020-04-30 17:19:27,400 [MainThread  ] Setup trainer for custom_sup
+2020-04-30 17:19:27,400 [MainThread  ] Start training custom_sup
+Traceback (most recent call last):
+  File "src/main.py", line 92, in <module>
+    main(args)
+  File "src/main.py", line 78, in main
+    finetune.train()
+  File "/scratch/kk4161/DL_project/DL-project/src/trainer.py", line 100, in train
+    batch_output = self.model(batch_input, self.task)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/scratch/kk4161/DL_project/DL-project/src/SupModels.py", line 597, in forward
+    reconstruction_loss = self.criterion(generated_image, road_map)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/loss.py", line 601, in forward
+    reduction=self.reduction)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/functional.py", line 2112, in binary_cross_entropy_with_logits
+    raise ValueError("Target size ({}) must be the same as input size ({})".format(target.size(), input.size()))
+ValueError: Target size (torch.Size([8, 1, 256, 256])) must be the same as input size (torch.Size([8, 1, 512, 512]))

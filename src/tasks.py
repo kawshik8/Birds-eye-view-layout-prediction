@@ -328,9 +328,19 @@ class Task(object):
         #     data["test"] = TransformDataset(eval_transform, data["test"])
         # print("transform", time.time()-start)
 
-
-        for split, dataset in data.items():
-            self.data_iterators[split] = torch.utils.data.DataLoader(
+        if self.pretrain:
+            for split, dataset in data.items():
+                self.data_iterators[split] = torch.utils.data.DataLoader(
+                    dataset=dataset,
+                    batch_size=self.args.batch_size,
+                    shuffle=(split == "train"),
+                    pin_memory=True,
+                    drop_last=(split == "train"),
+                    num_workers=self.args.num_workers,
+                )
+        else:
+            for split, dataset in data.items():
+                self.data_iterators[split] = torch.utils.data.DataLoader(
                 dataset=dataset,
                 batch_size=self.args.batch_size,
                 shuffle=(split == "train"),
@@ -405,7 +415,7 @@ class CUSTOM(Task):
         img_jitter = transforms.RandomApply([RandomTranslateWithReflect(4)], p=0.8)
         rnd_gray = transforms.RandomGrayscale(p=0.25)
 
-        rand_crop_image = transforms.RandomResizedCrop(size=(224, 224),scale=(0.6, 1.0))
+        rand_crop_image = transforms.RandomResizedCrop(size=(256, 256),scale=(0.6, 1.0))
 
         rand_crop_query = transforms.RandomResizedCrop(size=(255, 255),scale=(0.6, 1.0))
         if self.pretrain:
@@ -419,6 +429,7 @@ class CUSTOM(Task):
                                 rnd_gray,
                                 # transforms.Resize((256,256), interpolation=2),
                                 transforms.ToTensor(),
+                                transforms.Normalize((0, 0, 0), (1,1,1)),
                                 # normalize,
                                 # ToPatches(self.args.num_patches,self.args.view),
                             ]
@@ -430,8 +441,8 @@ class CUSTOM(Task):
                                 # rnd_gray,
                                 # transforms.Resize((256,256), interpolation=2),
                                 transforms.ToTensor(),
-                                
-                                # normalize,
+                                transforms.Normalize((0, 0, 0), (1,1,1)),
+				# normalize,
                                 ToPatches(self.args.num_patches,self.args.view,transforms.Compose([torchvision.transforms.ToPILImage(),transforms.RandomCrop((64,64)),col_jitter,
                                 rnd_gray,transforms.ToTensor()])),
                                 
@@ -532,7 +543,7 @@ class CUSTOM(Task):
                                 )
                                 
             # train, val = self.make_data_split(train, 1.0)
-            self.args.vocab_size = len(train)
+            self.args.vocab_size = len(train) + len(val)
             raw_data = {"train": train, "val": val}
         else:
             scene_index = np.random.permutation(np.arange(106, 134))

@@ -1,0 +1,30 @@
+2020-04-30 15:30:46,569 [MainThread  ] Experiment pirl_r18
+2020-04-30 15:30:46,570 [MainThread  ] Receive config Namespace(batch_size=64, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='./data/', detect_objects=False, device='cuda:0', dup_pos=0, exp_dir='./results/pirl_r18', exp_name='pirl_r18', finetune_ckpt_interval=0, finetune_learning_rate=0.01, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=1e-05, gen_road_map=False, image_folder='/scratch/kk4161/DL_project/data', image_pretrain_obj='pirl_nce_loss', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet18', num_negatives=10000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_image'], pretrain_total_iters=50000, pretrain_val_interval=2000, pretrain_weight_decay=1e-05, project_dim=128, report_interval=250, results_dir='./results/', road_map_loss='bce', sampling_type='image', synthesizer_nlayers=2, transfer_paradigm='tunable', use_memory_bank=1, view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-30 15:30:46,570 [MainThread  ] Start creating tasks
+2020-04-30 15:30:46,570 [MainThread  ] Start loading data
+2020-04-30 15:30:46,570 [MainThread  ] Loading custom_un_image data
+2020-04-30 15:30:46,570 [MainThread  ] Loading custom_sup data
+2020-04-30 15:30:46,971 [MainThread  ] Start creating models
+2020-04-30 15:30:47,237 [MainThread  ] Loaded image ssl model
+2020-04-30 15:30:47,390 [MainThread  ] Loaded supervised model
+2020-04-30 15:30:51,509 [MainThread  ] Setup trainer for custom_un_image
+2020-04-30 15:30:51,510 [MainThread  ] Start training custom_un_image
+PIRL transformations
+Traceback (most recent call last):
+  File "src/main.py", line 92, in <module>
+    main(args)
+  File "src/main.py", line 53, in main
+    pretrain.train()
+  File "/scratch/kk4161/DL_project/DL-project/src/trainer.py", line 100, in train
+    batch_output = self.model(batch_input, self.task)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/scratch/kk4161/DL_project/DL-project/src/SSLmodels.py", line 206, in forward
+    batch_indices = np.array(index)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/tensor.py", line 449, in __array__
+    return self.numpy()
+TypeError: can't convert CUDA tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.
+Exception ignored in: <function WeakValueDictionary.__init__.<locals>.remove at 0x2b6ff39dfd90>
+Traceback (most recent call last):
+  File "/share/apps/python3/3.5.3/intel/lib/python3.5/weakref.py", line 117, in remove
+TypeError: 'NoneType' object is not callable
