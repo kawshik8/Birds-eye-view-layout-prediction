@@ -203,7 +203,7 @@ class ImageSSLModels(SSLModel):
             if self.use_memory_bank:
                 positives_from_memory = self.memory_bank[index]
 
-                batch_indices = np.array(index)
+                batch_indices = np.array(index.cpu())
 
                 neg_ind = list(set(self.all_indices) - set(batch_indices))
 

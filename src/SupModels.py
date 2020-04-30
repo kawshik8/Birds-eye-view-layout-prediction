@@ -317,7 +317,7 @@ class ViewGenModels(ViewModel):
         self.blobs_strategy = self.args.blobs_strategy
 
         if self.gen_roadmap or (self.detect_objects and "decoder" in self.blobs_strategy):
-            self.reduce = nn.Conv2d(6 * self.d_model, self.d_model, kernel_size = 1, stride = 1)
+            self.reduce = nn.Conv2d(6 * self.d_model, self.d_model, kernel_size = 3, stride = 1)
 
         out_dim = 1
 
@@ -346,24 +346,24 @@ class ViewGenModels(ViewModel):
                 )
 
                 self.decoder_network =  nn.Sequential(*decoder_network_layers)
+                self.refine_views = block(int(6*self.d_model), int(6*self.d_model), 3, 1, 0)
+                self.decoding = nn.Sequential(self.decoder_network, self.reduce, self.refine_views)
 
-                self.decoding = nn.Sequential(self.decoder_network, self.reduce)
-
-                self.loss_type = "bce"
+                #self.loss_type = "bce"
 
             else:
-
+                self.max_f = 64
                 self.latent_dim = self.args.latent_dim
                 decoder_network_layers = []
                 decoder_network_layers.append(
-                    block(int(self.latent_dim), int(self.max_f), 2, 2, 0, "leakyrelu"),
+                    block(32, int(self.max_f), 2, 2, 0, "relu"),
                 )
                 
-                init_layer_dim = 16
+                init_layer_dim = 32
                 init_channel_dim = self.max_f
                 while init_layer_dim < self.input_dim:
                     decoder_network_layers.append( 
-                        block(int(init_channel_dim), int(init_channel_dim // 2), 2, 2, 0, "leakyrelu"),
+                        block(int(init_channel_dim), int(init_channel_dim // 2), 2, 2, 0, "relu"),
                     )
                     init_layer_dim *= 2
                     init_channel_dim = init_channel_dim / 2
@@ -376,15 +376,17 @@ class ViewGenModels(ViewModel):
                 self.decoder_network = nn.Sequential(*decoder_network_layers)
                 # print(self.decoder_network)
 
-                
-                self.z_project = nn.Conv2d(self.d_model, 2*self.latent_dim, 1, 1)
-
-                # self.z_project = nn.Linear(self.d_model, 2*self.latent_dim)
-
+                self.refine = nn.Linear(self.d_model,self.d_model)
+                #self.dense2 = nn.Linear(self.d_model,2*self.latent_dim)
+                #self
+                #self.z_project = nn.Conv2d(self.d_model, 2*self.latent_dim, 1, 1)
+                self.z_refine = nn.Linear(self.latent_dim, self.latent_dim)
+                self.z_project = nn.Linear(self.d_model, 2*self.latent_dim)
+                self.z_reshape = nn.Linear(self.latent_dim, 16*16*32)
                 # self.reduce = nn.Linear((6-self.mask_ninps) * self.d_model, self.d_model)
-                self.decoding = nn.Sequential(self.decoder_network, self.z_project, self.reduce)
+                self.decoding = nn.Sequential(self.decoder_network, self.z_refine, self.refine, self.z_reshape, self.z_project, self.reduce)
 
-                self.loss_type = "mse"
+                #self.loss_type = "mse"
 
             self.loss_type = self.args.road_map_loss
 
@@ -461,7 +463,9 @@ class ViewGenModels(ViewModel):
         
 
         self.dropout = torch.nn.Dropout(p=0.5, inplace=False)
-
+        #self.refine = nn.Linear(self.d_model,self.d_model)
+        #self.dense2 = nn.Linear(self.d_model,2*self.latent_dim)
+        #self
         # self.use_memory_bank = True
 
         # if self.use_memory_bank:
@@ -549,7 +553,7 @@ class ViewGenModels(ViewModel):
 
         if self.gen_roadmap or (self.detect_objects and "decoder" in self.blobs_strategy):
             if self.fusion == "concat":
-                fusion = self.reduce(views.flatten(1,2))
+                fusion = self.reduce(self.refine_views(views.flatten(1,2)))
 
             else:#if self.fusion == "mean":
                 fusion = views.mean(dim=1)
@@ -572,23 +576,31 @@ class ViewGenModels(ViewModel):
 
             else:
 
-                # pool = self.avg_pool(fusion).view(bs,self.d_model)
-                bs,c,w,h = fusion.shape
+                pool = self.avg_pool(fusion).view(bs,self.d_model)
+                pool = self.refine(pool)
+                pool = F.relu(pool)
+                #bs,c,w,h = fusion.shape
                 # print(fusion.shape)
 
-                mu_logvar = self.z_project(fusion).view(bs,2,-1,w,h)
+                mu_logvar = self.z_project(pool).view(bs,2,self.latent_dim)
                 # print(mu_logvar.shape)
 
                 mu = mu_logvar[:,0]
                 logvar = mu_logvar[:,1]
 
                 z = self.reparameterize(mu,logvar)
+                
+                z = self.z_refine(z)
+                z = F.relu(z)
 
+                z = self.z_reshape(z).view(bs,32,16,16)
+                z = F.relu(z)
+  
                 generated_image = self.decoder_network(z)
                 # print(generated_image.shape, mu.shape, logvar.shape)
 
                 reconstruction_loss = self.criterion(generated_image, road_map)
-                kl_divergence_loss = (0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2)))//64
+                kl_divergence_loss = (0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2)))#/64
 
                 batch_output["road_map"] = torch.sigmoid(generated_image)
                 batch_output["recon_loss"] = reconstruction_loss

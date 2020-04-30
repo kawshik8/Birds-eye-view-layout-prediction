@@ -1,0 +1,26 @@
+2020-04-30 15:13:49,462 [MainThread  ] Experiment road_map_cvar8_bce
+2020-04-30 15:13:49,462 [MainThread  ] Receive config Namespace(batch_size=16, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='./data/', detect_objects=False, device='cuda:0', dup_pos=0, exp_dir='./results/road_map_cvar8_bce', exp_name='road_map_cvar8_bce', finetune_ckpt_interval=0, finetune_learning_rate=0.01, finetune_obj='var_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=100000, finetune_val_interval=2000, finetune_weight_decay=1e-05, gen_road_map=True, image_folder='/scratch/kk4161/DL_project/data', image_pretrain_obj='none', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=8, network_base='resnet18', num_negatives=1000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_image'], pretrain_total_iters=100000, pretrain_val_interval=2000, pretrain_weight_decay=1e-05, project_dim=128, report_interval=250, results_dir='./results/', road_map_loss='bce', sampling_type='image', synthesizer_nlayers=2, transfer_paradigm='tunable', use_memory_bank=1, view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-30 15:13:49,462 [MainThread  ] Start creating tasks
+2020-04-30 15:13:49,463 [MainThread  ] Start loading data
+2020-04-30 15:13:49,463 [MainThread  ] Loading custom_sup data
+2020-04-30 15:13:49,824 [MainThread  ] Start creating models
+2020-04-30 15:13:50,053 [MainThread  ] Loaded supervised model
+2020-04-30 15:13:53,233 [MainThread  ] Setup trainer for custom_sup
+2020-04-30 15:13:53,233 [MainThread  ] Start training custom_sup
+2020-04-30 15:15:28,514 [MainThread  ] train batch 93 / 157 (iter 250), current average result {'recon_loss': tensor(0.4766, grad_fn=<DivBackward0>), 'KLD_loss': tensor(408.3400, grad_fn=<DivBackward0>), 'ts_road_map': tensor(0.4546, grad_fn=<DivBackward0>), 'loss': tensor(408.8167, grad_fn=<DivBackward0>)}
+2020-04-30 15:17:05,664 [MainThread  ] train batch 29 / 157 (iter 500), current average result {'recon_loss': tensor(0.3934, grad_fn=<DivBackward0>), 'KLD_loss': tensor(521.9220, grad_fn=<DivBackward0>), 'ts_road_map': tensor(0.5400, grad_fn=<DivBackward0>), 'loss': tensor(522.3154, grad_fn=<DivBackward0>)}
+2020-04-30 15:18:33,175 [MainThread  ] train batch 122 / 157 (iter 750), current average result {'recon_loss': tensor(0.3439, grad_fn=<DivBackward0>), 'KLD_loss': tensor(574.2400, grad_fn=<DivBackward0>), 'ts_road_map': tensor(0.5909, grad_fn=<DivBackward0>), 'loss': tensor(574.5840, grad_fn=<DivBackward0>)}
+2020-04-30 15:20:07,171 [MainThread  ] train batch 58 / 157 (iter 1000), current average result {'recon_loss': tensor(0.3100, grad_fn=<DivBackward0>), 'KLD_loss': tensor(607.6080, grad_fn=<DivBackward0>), 'ts_road_map': tensor(0.6265, grad_fn=<DivBackward0>), 'loss': tensor(607.9177, grad_fn=<DivBackward0>)}
+2020-04-30 15:21:32,206 [MainThread  ] train batch 151 / 157 (iter 1250), current average result {'recon_loss': tensor(0.2838, grad_fn=<DivBackward0>), 'KLD_loss': tensor(631.2984, grad_fn=<DivBackward0>), 'ts_road_map': tensor(0.6545, grad_fn=<DivBackward0>), 'loss': tensor(631.5823, grad_fn=<DivBackward0>)}
+Traceback (most recent call last):
+  File "src/main.py", line 92, in <module>
+    main(args)
+  File "src/main.py", line 78, in main
+    finetune.train()
+  File "/scratch/kk4161/DL_project/DL-project/src/trainer.py", line 102, in train
+    batch_output["loss"].backward()
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/tensor.py", line 166, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/autograd/__init__.py", line 99, in backward
+    allow_unreachable=True)  # allow_unreachable flag
+RuntimeError: CUDA out of memory. Tried to allocate 384.00 MiB (GPU 0; 15.90 GiB total capacity; 12.70 GiB already allocated; 35.88 MiB free; 2.46 GiB cached)

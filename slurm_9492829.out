@@ -1,0 +1,49 @@
+2020-04-30 15:39:39,888 [MainThread  ] Experiment pirl_r18
+2020-04-30 15:39:39,888 [MainThread  ] Receive config Namespace(batch_size=64, beta_ema=0.5, blobs_strategy='encoder_fused', cache_neg=0, clip=0.5, data_dir='./data/', detect_objects=False, device='cuda:0', dup_pos=0, exp_dir='./results/pirl_r18', exp_name='pirl_r18', finetune_ckpt_interval=0, finetune_learning_rate=0.01, finetune_obj='det_encoder', finetune_tasks=['custom_sup'], finetune_total_iters=10000, finetune_val_interval=2000, finetune_weight_decay=1e-05, gen_road_map=False, image_folder='/scratch/kk4161/DL_project/data', image_pretrain_obj='pirl_nce_loss', imagessl_load_ckpt='none', lambda_pirl=0.5, latent_dim=128, network_base='resnet18', num_negatives=10000, num_patches=9, num_queries=2, num_queries_percentage=0.25, num_workers=16, obj_det_head='retinanet', pretrain_ckpt_interval=0, pretrain_learning_rate=0.01, pretrain_task=['custom_un_image'], pretrain_total_iters=50000, pretrain_val_interval=2000, pretrain_weight_decay=1e-05, project_dim=128, report_interval=250, results_dir='./results/', road_map_loss='bce', sampling_type='image', synthesizer_nlayers=2, transfer_paradigm='tunable', use_memory_bank=1, view='normal', view_fusion_strategy='concat', view_pretrain_obj='none', viewssl_load_ckpt='none', vocab_size=64, warmup_iters=100)
+2020-04-30 15:39:39,888 [MainThread  ] Start creating tasks
+2020-04-30 15:39:39,889 [MainThread  ] Start loading data
+2020-04-30 15:39:39,889 [MainThread  ] Loading custom_un_image data
+2020-04-30 15:39:39,889 [MainThread  ] Loading custom_sup data
+2020-04-30 15:39:40,272 [MainThread  ] Start creating models
+2020-04-30 15:39:40,531 [MainThread  ] Loaded image ssl model
+2020-04-30 15:39:40,683 [MainThread  ] Loaded supervised model
+2020-04-30 15:39:44,795 [MainThread  ] Setup trainer for custom_un_image
+2020-04-30 15:39:44,795 [MainThread  ] Start training custom_un_image
+PIRL transformations
+2020-04-30 15:42:03,945 [MainThread  ] train batch 250 / 1015 (iter 250), current average result {'loss': tensor(11.4939, grad_fn=<DivBackward0>), 'acc': tensor(0.0003)}
+2020-04-30 15:44:12,125 [MainThread  ] train batch 500 / 1015 (iter 500), current average result {'loss': tensor(11.3655, grad_fn=<DivBackward0>), 'acc': tensor(0.0004)}
+2020-04-30 15:46:20,385 [MainThread  ] train batch 750 / 1015 (iter 750), current average result {'loss': tensor(11.2866, grad_fn=<DivBackward0>), 'acc': tensor(0.0004)}
+2020-04-30 15:48:26,954 [MainThread  ] train batch 1000 / 1015 (iter 1000), current average result {'loss': tensor(11.2258, grad_fn=<DivBackward0>), 'acc': tensor(0.0004)}
+2020-04-30 15:50:43,451 [MainThread  ] train batch 235 / 1015 (iter 1250), current average result {'loss': tensor(11.2148, grad_fn=<DivBackward0>), 'acc': tensor(0.0005)}
+2020-04-30 15:52:52,628 [MainThread  ] train batch 485 / 1015 (iter 1500), current average result {'loss': tensor(11.1998, grad_fn=<DivBackward0>), 'acc': tensor(0.0005)}
+2020-04-30 15:55:01,248 [MainThread  ] train batch 735 / 1015 (iter 1750), current average result {'loss': tensor(11.1674, grad_fn=<DivBackward0>), 'acc': tensor(0.0005)}
+2020-04-30 15:57:09,871 [MainThread  ] train batch 985 / 1015 (iter 2000), current average result {'loss': tensor(11.1403, grad_fn=<DivBackward0>), 'acc': tensor(0.0005)}
+2020-04-30 15:57:09,872 [MainThread  ] Evaluate on  custom_un_image:val data
+Traceback (most recent call last):
+  File "src/main.py", line 92, in <module>
+    main(args)
+  File "src/main.py", line 53, in main
+    pretrain.train()
+  File "/scratch/kk4161/DL_project/DL-project/src/trainer.py", line 122, in train
+    eval_scores = self.eval("val")
+  File "/scratch/kk4161/DL_project/DL-project/src/trainer.py", line 61, in eval
+    batch_output = self.model(batch_input, self.task)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/scratch/kk4161/DL_project/DL-project/src/SSLmodels.py", line 186, in forward
+    patches = self.pretrain_network(query.flatten(0, 1)).view(
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/container.py", line 92, in forward
+    input = module(input)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/container.py", line 92, in forward
+    input = module(input)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/conv.py", line 345, in forward
+    return self.conv2d_forward(input, self.weight)
+  File "/home/kk4161/.local/lib/python3.5/site-packages/torch/nn/modules/conv.py", line 342, in conv2d_forward
+    self.padding, self.dilation, self.groups)
+RuntimeError: Expected 4-dimensional input for 4-dimensional weight 64 3 7 7, but got 3-dimensional input of size [192, 224, 224] instead
