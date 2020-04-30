@@ -352,18 +352,18 @@ class ViewGenModels(ViewModel):
                 self.loss_type = "bce"
 
             else:
-                
+
                 self.latent_dim = self.args.latent_dim
                 decoder_network_layers = []
                 decoder_network_layers.append(
-                    block(int(self.latent_dim), int(self.max_f), 4, 1, 0, "leakyrelu"),
+                    block(int(self.latent_dim), int(self.max_f), 2, 2, 0, "leakyrelu"),
                 )
                 
-                init_layer_dim = 4
+                init_layer_dim = 16
                 init_channel_dim = self.max_f
                 while init_layer_dim < self.input_dim:
                     decoder_network_layers.append( 
-                        block(int(init_channel_dim), int(init_channel_dim // 2), 4, 2, 1, "leakyrelu"),
+                        block(int(init_channel_dim), int(init_channel_dim // 2), 2, 2, 0, "leakyrelu"),
                     )
                     init_layer_dim *= 2
                     init_channel_dim = init_channel_dim / 2
@@ -374,8 +374,13 @@ class ViewGenModels(ViewModel):
                 )
 
                 self.decoder_network = nn.Sequential(*decoder_network_layers)
+                # print(self.decoder_network)
 
-                self.z_project = nn.Linear(self.d_model, 2*self.latent_dim)
+                
+                self.z_project = nn.Conv2d(self.d_model, 2*self.latent_dim, 1, 1)
+
+                # self.z_project = nn.Linear(self.d_model, 2*self.latent_dim)
+
                 # self.reduce = nn.Linear((6-self.mask_ninps) * self.d_model, self.d_model)
                 self.decoding = nn.Sequential(self.decoder_network, self.z_project, self.reduce)
 
@@ -567,20 +572,23 @@ class ViewGenModels(ViewModel):
 
             else:
 
-                pool = self.avg_pool(fusion).view(bs,self.d_model)
+                # pool = self.avg_pool(fusion).view(bs,self.d_model)
+                bs,c,w,h = fusion.shape
+                # print(fusion.shape)
 
-                mu_logvar = self.z_project(pool).view(bs,2,-1)
+                mu_logvar = self.z_project(fusion).view(bs,2,-1,w,h)
+                # print(mu_logvar.shape)
 
                 mu = mu_logvar[:,0]
                 logvar = mu_logvar[:,1]
 
-                z = self.reparameterize(mu,logvar).view(bs,self.latent_dim,1,1)
+                z = self.reparameterize(mu,logvar)
 
                 generated_image = self.decoder_network(z)
                 # print(generated_image.shape, mu.shape, logvar.shape)
 
                 reconstruction_loss = self.criterion(generated_image, road_map)
-                kl_divergence_loss = 0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2))
+                kl_divergence_loss = (0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2)))//64
 
                 batch_output["road_map"] = torch.sigmoid(generated_image)
                 batch_output["recon_loss"] = reconstruction_loss

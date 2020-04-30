@@ -153,7 +153,7 @@ class ImageSSLModels(SSLModel):
 
         self.dropout = torch.nn.Dropout(p=0.5, inplace=False)
 
-        self.use_memory_bank = True
+        self.use_memory_bank = self.args.use_memory_bank
 
         if self.use_memory_bank:
             self.register_buffer("memory_bank", torch.randn(self.args.vocab_size, self.project_dim))

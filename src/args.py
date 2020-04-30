@@ -126,6 +126,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--use-memory-bank",
+    type=int,
+    default=1,
+    help="train object detection as well?",
+)
+
+parser.add_argument(
     "--finetune-tasks",
     type=str,
     default="custom_sup",
@@ -162,6 +169,12 @@ parser.add_argument(
 parser.add_argument(
     "--latent-dim", type=int, default=128, help="z dim for variational inference"
 )
+
+# # z_dim for variational inference
+# parser.add_argument(
+#     "--latent-dim-type", type=str, default="dense", help="z dim type for variational inference", choices=
+# )
+
 
 # num_patches
 parser.add_argument(
