@@ -173,7 +173,7 @@ class ClassificationModel(nn.Module):
         self.act4 = nn.ReLU()
 
         self.output = nn.Conv2d(feature_size, num_anchors * num_classes, kernel_size=3, padding=1)
-        self.output_act = nn.Softmax(dim = 1)
+        self.output_act = nn.Sigmoid()
 
     def forward(self, x):
         out = self.conv1(x)

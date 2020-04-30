@@ -108,6 +108,7 @@ class FocalLoss(nn.Module):
     def __init__(self, fused):
         super().__init__()
         self.fused = not fused
+        self.cls_loss = torch.nn.BCEWithLogitsLoss()
 
     def forward(self, classifications, regressions, anchors, annotations):
         alpha = 0.25
@@ -193,6 +194,9 @@ class FocalLoss(nn.Module):
             # print(targets[0])
             ce = -(targets * torch.log(classification) + (1.0 - targets) * torch.log(1.0 - classification))
             # print(ce.shape)
+            # ce = F.binary_cross_entropy_with_logits(classification, targets, reduction='none')# * torch.log(classification) + (1.0 - targets) * torch.log(1.0 - classification))
+            #ce = F.cross_entropy(classification, targets.max(dim=1)[1], reduction='none')
+            # print(ce.shape)
 
             # cls_loss = focal_weight * torch.pow(bce, gamma)
             cls_loss = focal_weight * ce
@@ -246,7 +250,7 @@ class FocalLoss(nn.Module):
                     0.5 * 9.0 * torch.pow(regression_diff, 2),
                     regression_diff - 0.5 / 9.0
                 )
-                
+
                 regression_losses.append(regression_loss.mean())
             else:
 
