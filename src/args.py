@@ -26,7 +26,6 @@ parser.add_argument(
     "--image-folder", type=str, default="../../../data/data/", help="directory of the custom dataset files",
 )
 
-
 # pretrain_task objective settings for models other than selfie
 parser.add_argument(
     "--image-pretrain-obj",
@@ -111,7 +110,7 @@ parser.add_argument(
 parser.add_argument(
     "--network-base",
     type=str,
-    default="resnet50",
+    default="resnet18",
     choices=["resnet18", "resnet34", "resnet50", "resnet101","resnet152"],
     help="base model to train",
 )
@@ -193,7 +192,7 @@ parser.add_argument(
 
 # batch_size
 parser.add_argument(
-    "--batch-size", type=int, default=64, help="number of images per minibatch",
+    "--batch-size", type=int, default=8, help="number of images per minibatch",
 )
 # cache_pos
 parser.add_argument(

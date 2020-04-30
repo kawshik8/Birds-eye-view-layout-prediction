@@ -12,81 +12,72 @@ def compute_iou(box1, box2):
     return a.intersection(b).area / a.union(b).area
 
 def get_orig_dim(boxes,gt=False):
-    x1 = boxes[:,:,0].unsqueeze(-1)
-    y1 = boxes[:,:,1].unsqueeze(-1)
+    cx1 = boxes[:,0].unsqueeze(-1)
+    cy1 = boxes[:,1].unsqueeze(-1)
 
-    if gt:
-        x2 = boxes[:,:,2].unsqueeze(-1)
-        y2 = boxes[:,:,3].unsqueeze(-1)
-        w = x2 - x1
-        h = y2 - y1
+    w = boxes[:,2].unsqueeze(-1)
+    h = boxes[:,3].unsqueeze(-1)
 
-    else:
-        w = boxes[:,:,2].unsqueeze(-1)
-        h = boxes[:,:,3].unsqueeze(-1)
+    x1 = cx1 - (w/2)
+    y1 = cy1 - (h/2)
 
-    final_bbox = torch.zeros(boxes.shape[0],boxes.shape[1],2,4)
+    final_bbox = torch.zeros(boxes.shape[0],2,4)
 
-    final_bbox[:,:,0] = torch.cat([x1,x1+w,x1,x1+w],dim=-1)
-    final_bbox[:,:,1] = torch.cat([y1,y1,y1+h,y1+h],dim=-1)
+    final_bbox[:,0] = torch.cat([x1,x1+w,x1,x1+w],dim=-1)
+    final_bbox[:,1] = torch.cat([y1,y1,y1+h,y1+h],dim=-1)
     
     return final_bbox
 
 def compute_ats_bounding_boxes(pred, gt):
 
+    # print(pred.shape, gt.shape)
+    boxes1 = get_orig_dim(pred)
+    boxes2 = get_orig_dim(gt)
+    # print(boxes1.shape, boxes2.shape)
 
-    boxes_pred = get_orig_dim(pred)
-    boxes_gt = get_orig_dim(gt,True)
+    num_boxes1 = boxes1.size(0)
+    num_boxes2 = boxes2.size(0)
 
-    scores = torch.zeros(pred.shape[0])
+    boxes1_max_x = boxes1[:, 0].max(dim=1)[0]
+    boxes1_min_x = boxes1[:, 0].min(dim=1)[0]
+    boxes1_max_y = boxes1[:, 1].max(dim=1)[0]
+    boxes1_min_y = boxes1[:, 1].min(dim=1)[0]
 
-    for inst in range(pred.shape[0]):
-        boxes1 = boxes_pred[inst]
-        boxes2 = boxes_gt[inst]
+    boxes2_max_x = boxes2[:, 0].max(dim=1)[0]
+    boxes2_min_x = boxes2[:, 0].min(dim=1)[0]
+    boxes2_max_y = boxes2[:, 1].max(dim=1)[0]
+    boxes2_min_y = boxes2[:, 1].min(dim=1)[0]
 
-        num_boxes1 = boxes1.size(0)
-        num_boxes2 = boxes2.size(0)
+    condition1_matrix = (boxes1_max_x.unsqueeze(1) > boxes2_min_x.unsqueeze(0))
+    condition2_matrix = (boxes1_min_x.unsqueeze(1) < boxes2_max_x.unsqueeze(0))
+    condition3_matrix = (boxes1_max_y.unsqueeze(1) > boxes2_min_y.unsqueeze(0))
+    condition4_matrix = (boxes1_min_y.unsqueeze(1) < boxes2_max_y.unsqueeze(0))
+    condition_matrix = condition1_matrix * condition2_matrix * condition3_matrix * condition4_matrix
 
-        boxes1_max_x = boxes1[:, 0].max(dim=1)[0]
-        boxes1_min_x = boxes1[:, 0].min(dim=1)[0]
-        boxes1_max_y = boxes1[:, 1].max(dim=1)[0]
-        boxes1_min_y = boxes1[:, 1].min(dim=1)[0]
+    iou_matrix = torch.zeros(num_boxes1, num_boxes2)
+    for i in range(num_boxes1):
+        for j in range(num_boxes2):
+            if condition_matrix[i][j]:
+                # print("goes inside")
+                iou_matrix[i][j] = compute_iou(boxes1[i], boxes2[j])
 
-        boxes2_max_x = boxes2[:, 0].max(dim=1)[0]
-        boxes2_min_x = boxes2[:, 0].min(dim=1)[0]
-        boxes2_max_y = boxes2[:, 1].max(dim=1)[0]
-        boxes2_min_y = boxes2[:, 1].min(dim=1)[0]
+    iou_max = iou_matrix.max(dim=0)[0]
+    # print(iou_max)
 
-        condition1_matrix = (boxes1_max_x.unsqueeze(1) > boxes2_min_x.unsqueeze(0))
-        condition2_matrix = (boxes1_min_x.unsqueeze(1) < boxes2_max_x.unsqueeze(0))
-        condition3_matrix = (boxes1_max_y.unsqueeze(1) > boxes2_min_y.unsqueeze(0))
-        condition4_matrix = (boxes1_min_y.unsqueeze(1) < boxes2_max_y.unsqueeze(0))
-        condition_matrix = condition1_matrix * condition2_matrix * condition3_matrix * condition4_matrix
+    iou_thresholds = [0.5, 0.6, 0.7, 0.8, 0.9]
+    total_threat_score = 0
+    total_weight = 0
+    for threshold in iou_thresholds:
+        tp = (iou_max > threshold).sum()
+        # print(threshold, tp)
+        threat_score = tp * 1.0 / (num_boxes1 + num_boxes2 - tp)
+        total_threat_score += 1.0 / threshold * threat_score
+        total_weight += 1.0 / threshold
 
-        iou_matrix = torch.zeros(num_boxes1, num_boxes2)
-        for i in range(num_boxes1):
-            for j in range(num_boxes2):
-                if condition_matrix[i][j]:
-                    iou_matrix[i][j] = compute_iou(boxes1[i], boxes2[j])
-
-        iou_max = iou_matrix.max(dim=0)[0]
-        # print(iou_max)
-
-        iou_thresholds = [0.5, 0.6, 0.7, 0.8, 0.9]
-        total_threat_score = 0
-        total_weight = 0
-        for threshold in iou_thresholds:
-            tp = (iou_max > threshold).sum()
-            # print(threshold, tp)
-            threat_score = tp * 1.0 / (num_boxes1 + num_boxes2 - tp)
-            total_threat_score += 1.0 / threshold * threat_score
-            total_weight += 1.0 / threshold
-
-        average_threat_score = total_threat_score / total_weight
-        # print(average_threat_score)
-        scores[inst] = average_threat_score 
+    average_threat_score = total_threat_score / total_weight
+    # print(average_threat_score)
     
-    return scores
+    return average_threat_score
 
 
 def compute_ts_road_map(road_map1, road_map2):
@@ -124,6 +115,7 @@ class FocalLoss(nn.Module):
         batch_size = classifications.shape[0]
         classification_losses = []
         regression_losses = []
+        ts_scores = []
 
         # print("insider focal loss")
         # print(anchors.shape)
@@ -174,7 +166,7 @@ class FocalLoss(nn.Module):
             if torch.cuda.is_available():
                 targets = targets.cuda()
 
-            targets[torch.lt(IoU_max, 0.5), :] = 0
+            targets[torch.lt(IoU_max, 0.4), :] = 0
 
             positive_indices = torch.ge(IoU_max, 0.5)
 
@@ -213,7 +205,7 @@ class FocalLoss(nn.Module):
             classification_losses.append(cls_loss.sum()/torch.clamp(num_positive_anchors.float(), min=1.0))
 
             # compute the loss for regression
-
+            # print("positive_indices.sum()",positive_indices.sum())
             if positive_indices.sum() > 0:
                 assigned_annotations = assigned_annotations[positive_indices, :]
 
@@ -246,6 +238,7 @@ class FocalLoss(nn.Module):
 
                 negative_indices = 1 + (~positive_indices)
 
+                ts_scores.append(compute_ats_bounding_boxes(regression[positive_indices, :],targets))
                 regression_diff = torch.abs(targets - regression[positive_indices, :])
 
                 regression_loss = torch.where(
@@ -253,11 +246,15 @@ class FocalLoss(nn.Module):
                     0.5 * 9.0 * torch.pow(regression_diff, 2),
                     regression_diff - 0.5 / 9.0
                 )
+                
                 regression_losses.append(regression_loss.mean())
             else:
+
                 if torch.cuda.is_available():
+                    ts_scores.append(torch.tensor(0).float().cuda())
                     regression_losses.append(torch.tensor(0).float().cuda())
                 else:
+                    ts_scores.append(torch.tensor(0).float())
                     regression_losses.append(torch.tensor(0).float())
 
-        return torch.stack(classification_losses).mean(dim=0, keepdim=True), torch.stack(regression_losses).mean(dim=0, keepdim=True)
+        return torch.stack(classification_losses).mean(dim=0, keepdim=True), torch.stack(regression_losses).mean(dim=0, keepdim=True), torch.stack(ts_scores).mean(dim=0, keepdim=True)

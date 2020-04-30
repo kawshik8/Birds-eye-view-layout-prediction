@@ -342,7 +342,7 @@ class ViewGenModels(ViewModel):
                     init_channel_dim = init_channel_dim / 2
 
                 decoder_network_layers.append(
-                    block(int(init_channel_dim), out_dim, 3, 1, 1, "sigmoid", False, False),
+                    block(int(init_channel_dim), out_dim, 3, 1, 1, "identity", False, False),
                 )
 
                 self.decoder_network =  nn.Sequential(*decoder_network_layers)
@@ -370,7 +370,7 @@ class ViewGenModels(ViewModel):
                 
                 
                 decoder_network_layers.append(
-                    block(int(init_channel_dim), 1, 3, 1, 1, "sigmoid", False, False),
+                    block(int(init_channel_dim), 1, 3, 1, 1, "identity", False, False),
                 )
 
                 self.decoder_network = nn.Sequential(*decoder_network_layers)
@@ -382,10 +382,11 @@ class ViewGenModels(ViewModel):
                 self.loss_type = "mse"
 
             self.loss_type = self.args.road_map_loss
+
             if self.loss_type == "mse":
                 self.criterion = torch.nn.MSELoss()
             elif self.loss_type == "bce":
-                self.criterion = torch.nn.BCELoss()
+                self.criterion = torch.nn.BCEWithLogitsLoss()
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1,1))
 
@@ -560,8 +561,8 @@ class ViewGenModels(ViewModel):
                 # print(mapped_image.shape, road_map.shape)
 
                 batch_output["recon_loss"] = self.criterion(mapped_image, road_map)
-                batch_output["road_map"] = mapped_image
-                batch_output["ts_road_map"] = compute_ts_road_map(mapped_image,road_map)
+                batch_output["road_map"] = torch.sigmoid(mapped_image)
+                batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],road_map)
                 batch_output["loss"] += batch_output["recon_loss"]
 
             else:
@@ -581,10 +582,10 @@ class ViewGenModels(ViewModel):
                 reconstruction_loss = self.criterion(generated_image, road_map)
                 kl_divergence_loss = 0.5 * torch.sum(logvar.exp() - logvar - 1 + mu.pow(2))
 
-                batch_output["road_map"] = generated_image
+                batch_output["road_map"] = torch.sigmoid(generated_image)
                 batch_output["recon_loss"] = reconstruction_loss
                 batch_output["KLD_loss"] = kl_divergence_loss
-                batch_output["ts_road_map"] = compute_ts_road_map(generated_image,road_map)
+                batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],road_map)
                 batch_output["loss"] += batch_output["recon_loss"] + batch_output["KLD_loss"]
 
         if self.detect_objects:
@@ -617,7 +618,7 @@ class ViewGenModels(ViewModel):
             # if self.training:
                 # print(classification.shape, regression.shape, anchors.shape, annotations.shape)
             
-            batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification.to(device), regression.to(device), anchors.to(device), annotations.to(device))
+            batch_output["classification_loss"], batch_output["detection_loss"],batch_output["ts_boxes"] = self.focalLoss(classification.to(device), regression.to(device), anchors.to(device), annotations.to(device))
             batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
             
             # batch_output["ts_obj_det"] = compute_ats_bounding_boxes()
@@ -626,7 +627,6 @@ class ViewGenModels(ViewModel):
             if self.training:
                 batch_output["classes"] = classification
                 batch_output["boxes"] = regression
-                batch_output["ts_boxes"] = compute_ats_bounding_boxes(regression, bbox)
                 
             else:
 
@@ -659,7 +659,7 @@ class ViewGenModels(ViewModel):
                 
                 batch_output["classes"] = classification
                 batch_output["boxes"] = regression
-                batch_output["ts_boxes"] = compute_ats_bounding_boxes(regression, bbox)
+                # batch_output["ts_boxes"] = compute_ats_bounding_boxes(regression, bbox)
 
                 # return [nms_scores, nms_class, transformed_anchors[0, anchors_nms_idx, :]]
 

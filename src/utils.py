@@ -28,7 +28,9 @@ class block(nn.Module):
             self.activation = nn.Tanh()
         elif activation == "sigmoid":
             self.activation = nn.Sigmoid()
-
+        elif activation == "identity":
+            self.activation = nn.Identity()
+            
     def forward(self, x):
 
         x = self.conv(x)
