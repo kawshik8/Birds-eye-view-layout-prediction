@@ -83,12 +83,35 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--view-fusion_strategy",
+    "--dense-before-fuse",
+    type=int,
+    default=0,
+    help="project encoder to dense before fusion?",
+)
+
+parser.add_argument(
+    "--dense-after-fuse",
+    type=int,
+    default=0,
+    help="project encoder to dense after fusion?",
+)
+
+parser.add_argument(
+    "--fuse-type",
     type=str,
     default="concat",
-    choices=["concat", "mean", "cross_attention"],
+    choices=["concat", "mean", "sum"],
     help="fuse 6 views in different ways",
 )
+
+parser.add_argument(
+    "--view-fusion-strategy",
+    type=str,
+    default="conv",
+    choices=["dense", "conv", "cross_attention"],
+    help="fuse 6 views in different ways",
+)
+
 # self.blobs_strategy = "encoder_views"
 #         assert self.blobs_strategy in ["decoder", "encoder_fused", "encoder_views"]
 parser.add_argument(
@@ -97,14 +120,7 @@ parser.add_argument(
     default="encoder_fused",
     choices=["decoder", "encoder_fused", "encoder_views"],
     help="fuse 6 views in different ways",
-)
-
-parser.add_argument(
-    "--synthesizer-nlayers",
-    type=int,
-    default=2,
-    help="number of layers in synthesizer (0 indicates no synthesizer)",
-)
+) 
 
 # pretrain_task objective settings for models other than selfie
 parser.add_argument(
@@ -297,6 +313,13 @@ parser.add_argument(
 
 def process_args(args):
     # TODO: some asserts, check the arguments
+    if args.dense_before_fuse:
+        args.view_fusion_strategy = "dbf_" + args.view_fusion_strategy
+    elif args.dense_after_fuse:
+        args.view_fusion_strategy = "daf_" + args.view_fusion_strategy
+
+    args.view_fusion_strategy += "_" + args.fuse_type
+
     args.gen_road_map = (args.gen_road_map==1)
     args.detect_objects = (args.detect_objects==1)
     args.num_queries = round(args.num_queries_percentage * args.num_patches)

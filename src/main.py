@@ -76,8 +76,12 @@ def main(args):
         sup_model.to(args.device)
         finetune = Trainer("finetune", sup_model, task, args)
         finetune.train()
-
         finetune.eval("test")
+        finetune_complete_ckpt = os.path.join(
+                args.exp_dir, "finetune_%s_complete.pth" % task.name
+            )
+        save_model(finetune_complete_ckpt, sup_model)
+        
 
     # evaluate
     # TODO: evaluate result on test split, write prediction for leaderboard submission (for dataset
