@@ -1,0 +1,10 @@
+future==0.18.2
+numpy==1.18.3
+pandas==0.25.3
+Pillow==7.1.2
+python-dateutil==2.8.1
+pytz==2020.1
+Shapely==1.7.0
+six==1.14.0
+torch==1.2.0
+torchvision==0.4.0

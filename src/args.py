@@ -18,12 +18,12 @@ parser.add_argument(
 )
 # data_dir
 parser.add_argument(
-    "--data-dir", type=str, default="./data/", help="directory of the data files",
+    "--data-dir", type=str, default="/SSDdata/oft/DLdata/", help="directory of the data files",
 )
 
 # image_folder
 parser.add_argument(
-    "--image-folder", type=str, default="../../../data/data/", help="directory of the custom dataset files",
+    "--image-folder", type=str, default="/SSDdata/oft/DLdata/", help="directory of the custom dataset files",
 )
 
 # pretrain_task objective settings for models other than selfie

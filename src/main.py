@@ -8,7 +8,7 @@ from SSLmodels import get_model
 from trainer import Trainer
 from utils import config_logging, load_model, save_model
 
-
+from pdb import set_trace as bp
 def main(args):
 
     # preparation
@@ -22,6 +22,7 @@ def main(args):
     finetune_tasks = [get_task(taskname, args) for taskname in args.finetune_tasks]
     log.info("Start loading data")
 
+    #bp()
     if args.image_pretrain_obj != "none" and args.view_pretrain_obj != "none":
         for task in pretrain_task:
             task.load_data()
@@ -45,6 +46,7 @@ def main(args):
     #if args.load_ckpt != "none":
     #    load_model(model, pretrain_complete_ckpt)
 
+    #bp()
     # pretrain
     if len(pretrain_task):
         if args.image_pretrain_obj != "none":

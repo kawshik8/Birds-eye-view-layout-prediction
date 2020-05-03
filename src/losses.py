@@ -4,6 +4,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from shapely.geometry import Polygon
 
+from pdb import set_trace as bp
+
 
 def compute_iou(box1, box2):
     a = Polygon(torch.t(box1)).convex_hull
@@ -30,13 +32,14 @@ def get_orig_dim(boxes,gt=False):
 
 def compute_ats_bounding_boxes(pred, gt):
 
-    # print(pred.shape, gt.shape)
     boxes1 = get_orig_dim(pred)
     boxes2 = get_orig_dim(gt)
     # print(boxes1.shape, boxes2.shape)
 
     num_boxes1 = boxes1.size(0)
     num_boxes2 = boxes2.size(0)
+
+    # print(pred.shape, gt.shape)
 
     boxes1_max_x = boxes1[:, 0].max(dim=1)[0]
     boxes1_min_x = boxes1[:, 0].min(dim=1)[0]
@@ -77,7 +80,7 @@ def compute_ats_bounding_boxes(pred, gt):
     average_threat_score = total_threat_score / total_weight
     # print(average_threat_score)
     
-    return average_threat_score
+    return average_threat_score.float().cuda()
 
 
 def compute_ts_road_map(road_map1, road_map2):
@@ -111,6 +114,8 @@ class FocalLoss(nn.Module):
         self.cls_loss = torch.nn.BCEWithLogitsLoss()
 
     def forward(self, classifications, regressions, anchors, annotations):
+        #print("---- input regressions ----")
+        #print (regressions)
         alpha = 0.25
         gamma = 2.0
         batch_size = classifications.shape[0]
@@ -132,6 +137,7 @@ class FocalLoss(nn.Module):
         anchor_heights = anchor[:, 3] - anchor[:, 1]
         anchor_ctr_x   = anchor[:, 0] + 0.5 * anchor_widths
         anchor_ctr_y   = anchor[:, 1] + 0.5 * anchor_heights
+        anchor_angle   = anchor[:, 4]
 
         for j in range(batch_size):
 
@@ -140,7 +146,7 @@ class FocalLoss(nn.Module):
 
             bbox_annotation = annotations[j, :, :]
 
-            bbox_annotation = bbox_annotation[bbox_annotation[:, 4] != -1]
+            bbox_annotation = bbox_annotation[bbox_annotation[:, 5] != -1]
 
             if bbox_annotation.shape[0] == 0:
                 if torch.cuda.is_available():
@@ -153,10 +159,12 @@ class FocalLoss(nn.Module):
                 continue
 
             classification = torch.clamp(classification, 1e-4, 1.0 - 1e-4)
+            #bp()
 
-            IoU = calc_iou(anchors[0, :, :], bbox_annotation[:, :4]) # num_anchors x num_annotations
+            IoU = calc_iou(anchors[0, :, 0:4], bbox_annotation[:, :4]) # num_anchors x num_annotations
 
             IoU_max, IoU_argmax = torch.max(IoU, dim=1) # num_anchors x 1
+            # bp()
 
             #import pdb
             #pdb.set_trace()
@@ -206,8 +214,11 @@ class FocalLoss(nn.Module):
             else:
                 cls_loss = torch.where(torch.ne(targets, -1.0), cls_loss, torch.zeros(cls_loss.shape))
 
+            #bp()
+
             classification_losses.append(cls_loss.sum()/torch.clamp(num_positive_anchors.float(), min=1.0))
 
+            # bp()
             # compute the loss for regression
             # print("positive_indices.sum()",positive_indices.sum())
             if positive_indices.sum() > 0:
@@ -217,11 +228,13 @@ class FocalLoss(nn.Module):
                 anchor_heights_pi = anchor_heights[positive_indices]
                 anchor_ctr_x_pi = anchor_ctr_x[positive_indices]
                 anchor_ctr_y_pi = anchor_ctr_y[positive_indices]
+                anchor_angle_pi = anchor_angle[positive_indices]
 
                 gt_widths  = assigned_annotations[:, 2] - assigned_annotations[:, 0]
                 gt_heights = assigned_annotations[:, 3] - assigned_annotations[:, 1]
                 gt_ctr_x   = assigned_annotations[:, 0] + 0.5 * gt_widths
                 gt_ctr_y   = assigned_annotations[:, 1] + 0.5 * gt_heights
+                gt_angle   = assigned_annotations[:, 4]
 
                 # clip widths to 1
                 gt_widths  = torch.clamp(gt_widths, min=1)
@@ -231,18 +244,26 @@ class FocalLoss(nn.Module):
                 targets_dy = (gt_ctr_y - anchor_ctr_y_pi) / anchor_heights_pi
                 targets_dw = torch.log(gt_widths / anchor_widths_pi)
                 targets_dh = torch.log(gt_heights / anchor_heights_pi)
+                targets_dangle = gt_angle - anchor_angle_pi
 
-                targets = torch.stack((targets_dx, targets_dy, targets_dw, targets_dh))
+
+                targets = torch.stack((targets_dx, targets_dy, targets_dw, targets_dh, targets_dangle))
                 targets = targets.t()
 
                 if torch.cuda.is_available():
-                    targets = targets/torch.Tensor([[0.1, 0.1, 0.2, 0.2]]).cuda()
+                    targets = targets/torch.Tensor([[0.1, 0.1, 0.2, 0.2, 1]]).cuda()
                 else:
-                    targets = targets/torch.Tensor([[0.1, 0.1, 0.2, 0.2]])
+                    targets = targets/torch.Tensor([[0.1, 0.1, 0.2, 0.2, 1]])
 
                 negative_indices = 1 + (~positive_indices)
 
-                ts_scores.append(compute_ats_bounding_boxes(regression[positive_indices, :],targets))
+                print ("----positive_indices----")
+                print (positive_indices)
+                print ("----negative_indices----")
+                print (negative_indices)
+                # bp()
+
+                ts_scores.append(compute_ats_bounding_boxes(regression[positive_indices, 0:4],targets[0:4]))
                 regression_diff = torch.abs(targets - regression[positive_indices, :])
 
                 regression_loss = torch.where(
@@ -251,7 +272,7 @@ class FocalLoss(nn.Module):
                     regression_diff - 0.5 / 9.0
                 )
 
-                regression_losses.append(regression_loss.mean())
+                regression_losses.append(regression_loss.mean().float())
             else:
 
                 if torch.cuda.is_available():
@@ -260,5 +281,7 @@ class FocalLoss(nn.Module):
                 else:
                     ts_scores.append(torch.tensor(0).float())
                     regression_losses.append(torch.tensor(0).float())
+
+        #bp()
 
         return torch.stack(classification_losses).mean(dim=0, keepdim=True), torch.stack(regression_losses).mean(dim=0, keepdim=True), torch.stack(ts_scores).mean(dim=0, keepdim=True)

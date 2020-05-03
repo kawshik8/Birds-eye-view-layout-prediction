@@ -1,0 +1,15 @@
+python3 src/main.py --batch-size 4 \
+					--report-interval 250 \
+					--exp-name "test" \
+					--road-map-loss bce \
+					--detect-objects 1 \
+					--results-dir ./results/ \
+					--data-dir ./data/ \
+					--image-folder ../../data/ \
+					--finetune-obj "var_encoder" \
+					--blobs-strategy "encoder_fused" \
+					--synthesizer-nlayers 2 \
+					--network-base resnet50 \
+					--finetune-learning-rate 0.005 \
+					--finetune-total-iters 50000 \
+					--device cpu

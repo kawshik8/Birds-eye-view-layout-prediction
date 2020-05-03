@@ -22,7 +22,7 @@ class Trainer(object):
         else:
             best = float('-inf')
 
-        self.training_infos = {"best_iter": -1, "best_performance": best, "current_iter": 0}
+        self.training_infos = {"best_iter": -1, "best_performance": best, "current_iter": 0, 'lr': 0.0}
         self.report_interval = args.report_interval
         if stage == "pretrain":
             self.total_iters = args.pretrain_total_iters
@@ -36,6 +36,12 @@ class Trainer(object):
             raise NotImplementedError  # unidentified stage
 
         self.optimizer, self.scheduler = self.model.config_stage(stage)
+        #print ("---- self.optimizer ---")
+        for param_group in self.optimizer.param_groups:
+            self.training_infos['lr']=param_group['lr']
+        print ("---- self.scheduler ---")
+        print (self.scheduler)
+
         return
 
     def eval(self, split):
@@ -83,6 +89,8 @@ class Trainer(object):
         self.task.reset_scorers()
         #self.val_interval = len(self.task.data_iterators["train"])
         all_param = [param for group in self.optimizer.param_groups for param in group["params"]]
+        #print ("---all_param---")
+        #print (all_param)
         for epoch in range(math.ceil(self.total_iters / len(self.task.data_iterators["train"]))):
             for batch, inputs in enumerate(self.task.data_iterators["train"]):
             
@@ -105,6 +113,10 @@ class Trainer(object):
                 self.optimizer.step()
                 
                 self.training_infos["current_iter"] += 1
+                for param_group in self.optimizer.param_groups:
+                    self.training_infos['lr']=param_group['lr']
+                #print ("----- training_infos -----")
+                #print (self.training_infos)
                 if self.training_infos["current_iter"] % self.report_interval == 0:
                     log.info(
                         "train batch %d / %d (iter %d), current average result %s"

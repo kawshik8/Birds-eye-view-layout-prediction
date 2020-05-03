@@ -68,7 +68,7 @@ def collater(data):
 
         max_boxes = max(shapes)
 
-        bboxes = torch.ones(bs,max_boxes,4)*-1
+        bboxes = torch.ones(bs,max_boxes,5)*-1
         classes = torch.ones(bs,max_boxes,1)*-1
         actions = torch.ones(bs,max_boxes)*-1
 

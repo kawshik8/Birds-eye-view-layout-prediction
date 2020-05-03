@@ -4,6 +4,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from pdb import set_trace as bp
+
 EPSILON = 1e-8
 
 class block(nn.Module):
@@ -75,7 +77,7 @@ class Resblock(nn.Module):
         return x
 
 class Anchors(nn.Module):
-    def __init__(self, pyramid_levels=None, strides=None, sizes=None, ratios=None, scales=None):
+    def __init__(self, pyramid_levels=None, strides=None, sizes=None, ratios=None, scales=None, angle=None):
         super(Anchors, self).__init__()
 
         if pyramid_levels is None:
@@ -88,6 +90,9 @@ class Anchors(nn.Module):
             self.ratios = np.array([0.5, 1, 2])
         if scales is None:
             self.scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)])
+        if angle is None:
+            self.angle = np.array([0, np.pi/12, np.pi/6, np.pi/4, np.pi/3,   np.pi*5/12, 
+                                     -np.pi/12, -np.pi/6, -np.pi/4, -np.pi/3, -np.pi*5/12])
 
     def forward(self, image):
         
@@ -96,10 +101,11 @@ class Anchors(nn.Module):
         image_shapes = [(image_shape + 2 ** x - 1) // (2 ** x) for x in self.pyramid_levels]
 
         # compute anchors over all pyramid levels
-        all_anchors = np.zeros((0, 4)).astype(np.float32)
+        all_anchors = np.zeros((0, 5)).astype(np.float32)
 
         for idx, p in enumerate(self.pyramid_levels):
-            anchors         = generate_anchors(base_size=self.sizes[idx], ratios=self.ratios, scales=self.scales)
+            anchors         = generate_anchors(base_size=self.sizes[idx], 
+                                               ratios=self.ratios, scales=self.scales, angle=self.angle)
             shifted_anchors = shift(image_shapes[idx], self.strides[idx], anchors)
             all_anchors     = np.append(all_anchors, shifted_anchors, axis=0)
 
@@ -110,7 +116,7 @@ class Anchors(nn.Module):
         else:
             return torch.from_numpy(all_anchors.astype(np.float32))
 
-def generate_anchors(base_size=16, ratios=None, scales=None):
+def generate_anchors(base_size=16, ratios=None, scales=None, angle=None):
     """
     Generate anchor (reference) windows by enumerating aspect ratios X
     scales w.r.t. a reference window.
@@ -122,24 +128,25 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
     if scales is None:
         scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)])
 
-    num_anchors = len(ratios) * len(scales)
+    num_anchors = len(ratios) * len(scales) * len(angle)
 
     # initialize output anchors
-    anchors = np.zeros((num_anchors, 4))
+    anchors = np.zeros((num_anchors, 5))
 
     # scale base_size
-    anchors[:, 2:] = base_size * np.tile(scales, (2, len(ratios))).T
+    anchors[:, 2:4] = base_size * np.tile(scales, (2, len(ratios)*len(angle))).T
 
     # compute areas of anchors
     areas = anchors[:, 2] * anchors[:, 3]
 
     # correct for ratios
-    anchors[:, 2] = np.sqrt(areas / np.repeat(ratios, len(scales)))
-    anchors[:, 3] = anchors[:, 2] * np.repeat(ratios, len(scales))
+    anchors[:, 2] = np.sqrt(areas / np.repeat(ratios, len(scales) * len(angle)))
+    anchors[:, 3] = anchors[:, 2] * np.repeat(ratios, len(scales) * len(angle))
 
     # transform from (x_ctr, y_ctr, w, h) -> (x1, y1, x2, y2)
-    anchors[:, 0::2] -= np.tile(anchors[:, 2] * 0.5, (2, 1)).T
+    anchors[:, 0:3:2] -= np.tile(anchors[:, 2] * 0.5, (2, 1)).T
     anchors[:, 1::2] -= np.tile(anchors[:, 3] * 0.5, (2, 1)).T
+    anchors[:, 4] = np.tile(np.repeat(angle, len(ratios)), len(scales))
 
     return anchors
 
@@ -193,8 +200,9 @@ def shift(shape, stride, anchors):
     # reshape to (K*A, 4) shifted anchors
     A = anchors.shape[0]
     K = shifts.shape[0]
-    all_anchors = (anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2)))
-    all_anchors = all_anchors.reshape((K * A, 4))
+    shifts = np.concatenate((shifts, np.zeros((K,1))), axis=1)
+    all_anchors = (anchors.reshape((1, A, 5)) + shifts.reshape((1, K, 5)).transpose((1, 0, 2)))
+    all_anchors = all_anchors.reshape((K * A, 5))
 
     return all_anchors
 

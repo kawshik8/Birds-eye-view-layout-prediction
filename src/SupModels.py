@@ -106,7 +106,7 @@ class PyramidFeatures(nn.Module):
 
 
 class RegressionModel(nn.Module):
-    def __init__(self, num_features_in, fused, num_anchors=9, feature_size=256):
+    def __init__(self, num_features_in, fused, num_anchors=9*11, feature_size=256):
         super(RegressionModel, self).__init__()
 
         self.fused = not fused 
@@ -122,7 +122,7 @@ class RegressionModel(nn.Module):
         self.conv4 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
         self.act4 = nn.ReLU()
 
-        self.output = nn.Conv2d(feature_size, num_anchors * 4, kernel_size=3, padding=1)
+        self.output = nn.Conv2d(feature_size, num_anchors * 5, kernel_size=3, padding=1)
 
     def forward(self, x):
         out = self.conv1(x)
@@ -149,11 +149,11 @@ class RegressionModel(nn.Module):
 
         # print("final1", out.shape)
 
-        return out.contiguous().view(out.shape[0], -1, 4)
+        return out.contiguous().view(out.shape[0], -1, 5)
 
 
 class ClassificationModel(nn.Module):
-    def __init__(self, num_features_in, fused, num_anchors=9, num_classes=9, prior=0.01, feature_size=256):
+    def __init__(self, num_features_in, fused, num_anchors=9*11, num_classes=9, prior=0.01, feature_size=256):
         super(ClassificationModel, self).__init__()
 
         self.num_classes = num_classes
