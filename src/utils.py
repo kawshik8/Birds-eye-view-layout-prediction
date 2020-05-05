@@ -4,8 +4,21 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision.models.resnet as resnet
 
 EPSILON = 1e-8
+
+def get_base_model(name):
+    if name=="resnet18":
+        return resnet.resnet18()
+    if name=="resnet34":
+        return resnet.resnet34()
+    if name=="resnet50":
+        return resnet.resnet50()
+    if name=="resnet101":
+        return resnet.resnet101()
+    if name=="resnet152":
+        return resnet.resnet152()
 
 class dblock(nn.Module):
     

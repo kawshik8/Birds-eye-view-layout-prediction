@@ -14,8 +14,6 @@ import math
 from SupModels import get_sup_model
 import logging as log
 
-
-
 OUT_BLOCK4_DIMENSION_DICT = {"resnet18": 512, "resnet34":512, "resnet50":2048, "resnet101":2048,
                               "resnet152":2048}
 

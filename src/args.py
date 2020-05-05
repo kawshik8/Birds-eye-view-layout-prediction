@@ -47,8 +47,16 @@ parser.add_argument(
     "--finetune-obj",
     type=str,
     default="det_encoder",
-    choices=["det_encoder","var_encoder","adv_encoder","none"],
+    choices=["det_encoder","var_encoder","adv_encoder","cond_adv_encoder","none"],
     help="finetune task, 'none' means skip finetune",
+)
+
+parser.add_argument(
+    "--disc-type",
+    type=str,
+    default="vanilla_disc",
+    choices=["patch_disc","vanilla_disc"],
+    help="types of discriminators to choose from",
 )
 
 parser.add_argument(
@@ -331,3 +339,4 @@ def process_args(args):
 
     args.finetune_tasks = list(filter(lambda task: task != "none", args.finetune_tasks.split(",")))
     args.exp_dir = os.path.join(args.results_dir, args.exp_name)
+    print(args)

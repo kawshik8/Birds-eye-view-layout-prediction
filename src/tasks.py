@@ -245,7 +245,12 @@ class Task(object):
         # if pretrain:
         #     self.eval_metric = "acc"
         # else:
-        self.eval_metric = "loss"
+        if pretrain:
+            self.eval_metric = "loss"
+        else:
+            self.eval_metric = "loss"
+            # if "adv" in args.finetune_obj:
+            #     self.eval_metric = "Gloss"
         # if self.pretrain:
         #     self.eval_metric = "loss"
         # else:
@@ -359,25 +364,27 @@ class Task(object):
 
             # TODO: Update this when new auxiliary losses are introduced
         else:
+            if "adv" in self.args.finetune_obj:
+                self.scorers.update({"loss": [], "GLoss": [], "GSupLoss": [], "GDiscLoss": [], "fake_DLoss": [], "real_DLoss":[], "ts_road_map":[]})#, "ts_boxes":[]})
+            else:
+                self.scorers.update({"loss": [], "classification_loss": [], "detection_loss": [], "KLD_loss": [], "recon_loss":[], "ts_road_map":[], "ts_boxes":[]})
 
-            self.scorers.update({"loss": [], "classification_loss": [], "detection_loss": [], "KLD_loss": [], "recon_loss":[], "ts_road_map":[], "ts_boxes":[]})
+                # print(self.scorers.keys())
 
-            # print(self.scorers.keys())
+                # print(self.args.detect_objects, self.args.gen_road_map)
 
-            # print(self.args.detect_objects, self.args.gen_road_map)
+                if not self.args.detect_objects:
+                    # print("inside 1")
+                    for i in ["classification_loss", "detection_loss", "ts_boxes"]:
+                        del self.scorers[i]
 
-            if not self.args.detect_objects:
-                # print("inside 1")
-                for i in ["classification_loss", "detection_loss", "ts_boxes"]:
-                    del self.scorers[i]
+                if not self.args.gen_road_map:
+                    for i in ["KLD_loss", "recon_loss", "ts_road_map"]:
+                        del self.scorers[i]
 
-            if not self.args.gen_road_map:
-                for i in ["KLD_loss", "recon_loss", "ts_road_map"]:
-                    del self.scorers[i]
-
-            if "KLD_loss" in self.scorers.keys() and "var" not in self.args.finetune_obj:
-                del self.scorers["KLD_loss"]
-            
+                if "KLD_loss" in self.scorers.keys() and "var" not in self.args.finetune_obj:
+                    del self.scorers["KLD_loss"]
+                
            
 
             # print(self.scorers.keys())
