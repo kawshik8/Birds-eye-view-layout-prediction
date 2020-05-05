@@ -414,13 +414,13 @@ class CUSTOM(Task):
         col_jitter = transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.2)], p=0.8)
         img_jitter = transforms.RandomApply([RandomTranslateWithReflect(4)], p=0.8)
         rnd_gray = transforms.RandomGrayscale(p=0.25)
-
+#         rotation = torchvision.transforms.RandomRotation((0,90,180,270))
         rand_crop_image = transforms.RandomResizedCrop(size=(256, 256),scale=(0.6, 1.0))
 
         rand_crop_query = transforms.RandomResizedCrop(size=(255, 255),scale=(0.6, 1.0))
         if self.pretrain:
             if "pirl" in self.args.image_pretrain_obj:
-                print("PIRL transformations")
+                # print("PIRL transformations")
                 train_transform = eval_transform = {
                     "image": transforms.Compose(
                             [
@@ -429,7 +429,7 @@ class CUSTOM(Task):
                                 rnd_gray,
                                 # transforms.Resize((256,256), interpolation=2),
                                 transforms.ToTensor(),
-                                transforms.Normalize((0, 0, 0), (1,1,1)),
+#                                 transforms.Normalize((0, 0, 0), (1,1,1)),
                                 # normalize,
                                 # ToPatches(self.args.num_patches,self.args.view),
                             ]
@@ -441,7 +441,7 @@ class CUSTOM(Task):
                                 # rnd_gray,
                                 # transforms.Resize((256,256), interpolation=2),
                                 transforms.ToTensor(),
-                                transforms.Normalize((0, 0, 0), (1,1,1)),
+#                                 transforms.Normalize((0, 0, 0), (1,1,1)),
 				# normalize,
                                 ToPatches(self.args.num_patches,self.args.view,transforms.Compose([torchvision.transforms.ToPILImage(),transforms.RandomCrop((64,64)),col_jitter,
                                 rnd_gray,transforms.ToTensor()])),
@@ -459,7 +459,7 @@ class CUSTOM(Task):
                                 
                                 transforms.Resize((256,256), interpolation=2),
                                 transforms.ToTensor(),
-                                transforms.Normalize((0, 0, 0), (1,1,1)),
+#                                 transforms.Normalize((0, 0, 0), (1,1,1)),
                                 # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                 # normalize,
                                 # ToPatches(self.args.num_patches,self.args.view),
@@ -482,7 +482,7 @@ class CUSTOM(Task):
                                 
                                 transforms.Resize((256,256), interpolation=2),
                                 transforms.ToTensor(),
-                                transforms.Normalize((0, 0, 0), (1,1,1)),
+#                                 transforms.Normalize((0, 0, 0), (1,1,1)),
                                 # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                 # normalize,
                                 # ToPatches(self.args.num_patches,self.args.view),
@@ -495,7 +495,7 @@ class CUSTOM(Task):
                                 # rnd_gray,
                                 transforms.Resize((256,256), interpolation=2),
                                 transforms.ToTensor(),
-                                transforms.Normalize((0, 0, 0), (1,1,1)),
+#                                 transforms.Normalize((0, 0, 0), (1,1,1)),
                                 # normalize,
                                 # ToPatches(self.args.num_patches,self.args.view,transforms.Compose([torchvision.transforms.ToPILImage(),transforms.RandomCrop((64,64)),col_jitter,
                                 # rnd_gray,transforms.ToTensor()])),
@@ -508,8 +508,11 @@ class CUSTOM(Task):
             train_transform = eval_transform = {
                 "image": transforms.Compose(
                     [
+#                         flip_lr,
+#                         rotation,
                         transforms.Resize((256,256), interpolation=2),
                         transforms.ToTensor(),
+#                         transforms.Normalize((0, 0, 0), (1,1,1)),
                     ]
                 ),
                 "road": transforms.Compose(
@@ -517,6 +520,7 @@ class CUSTOM(Task):
                         torchvision.transforms.ToPILImage(),
                         transforms.Resize((256,256), interpolation=2),
                         transforms.ToTensor(),
+#                         transforms.Normalize((0, 0, 0), (1,1,1)),
                     ]
                 ),
             }
@@ -643,7 +647,7 @@ class CIFAR10(Task):
             cifar10_test = datasets.CIFAR10(root=self.path, train=False, download=True)
             cifar10_train, cifar10_val = self.make_data_split(cifar10_train, self.label_pct)
             raw_data = {"train": cifar10_train, "val": cifar10_val, "test": cifar10_test}
-        print(type(cifar10_train),len(cifar10_train),cifar10_train[0])#,type(cifar10_train[0]),len(cifar10_train)[0])
+        # print(type(cifar10_train),len(cifar10_train),cifar10_train[0])#,type(cifar10_train[0]),len(cifar10_train)[0])
         return raw_data
 
 

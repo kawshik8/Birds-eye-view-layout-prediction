@@ -7,7 +7,7 @@ from tasks import get_task
 from SSLmodels import get_model
 from trainer import Trainer
 from utils import config_logging, load_model, save_model
-
+import torch
 
 def main(args):
 
@@ -73,11 +73,41 @@ def main(args):
 
     # finetune and test
     for task in finetune_tasks:
+        if args.imagessl_load_ckpt is not "none":
+            pretrained_dict = torch.load(image_pretrain_complete_ckpt,map_location=torch.device('cpu'))
+            model_dict = sup_model.state_dict()
+            tdict = model_dict.copy()
+            # print(sup_model.image_network.parameters())
+            # print((sup_model.image_network[1].weight.data))
+            # wtv = sup_model.image_network[0].weight.data
+            # print(tdict.items()==model_dict.items())
+            # print(type(tdict),type(model_dict))
+
+
+            # print(model_dict.keys())
+            # print("\n\n\n")
+
+            
+            pretrained_dict = {k.replace("patch","image"): v for k, v in pretrained_dict.items() if k.replace("patch","image") in model_dict}
+            # print(pretrained_dict.keys())
+            # print("\n\n\n")
+
+            model_dict.update(pretrained_dict)
+            sup_model.load_state_dict(model_dict)
+            # print(type(tdict),type(model_dict))
+            # print(sup_model.image_network[1].weight.data)
+            # print((tdict.items()==model_dict.items()).all())
+
+
         sup_model.to(args.device)
         finetune = Trainer("finetune", sup_model, task, args)
         finetune.train()
-
         finetune.eval("test")
+        finetune_complete_ckpt = os.path.join(
+                args.exp_dir, "finetune_%s_complete.pth" % task.name
+            )
+        save_model(finetune_complete_ckpt, sup_model)
+        
 
     # evaluate
     # TODO: evaluate result on test split, write prediction for leaderboard submission (for dataset

@@ -3,12 +3,48 @@ import torch
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 EPSILON = 1e-8
 
+class dblock(nn.Module):
+    
+    def __init__(self, input_dim, output_dim, activation="relu", norm = True):
+        super().__init__()
+
+       
+        self.dense = nn.Linear(input_dim, output_dim)
+
+        self.use_norm = norm
+        
+        if norm:
+            self.bn = nn.BatchNorm1d(output_dim)
+
+        if activation == "relu":
+            self.activation = nn.ReLU(inplace=True)
+        elif activation == "leakyrelu":
+            self.activation = nn.LeakyReLU(0.2,inplace=True)
+        elif activation == "tanh":
+            self.activation = nn.Tanh()
+        elif activation == "sigmoid":
+            self.activation = nn.Sigmoid()
+        elif activation == "identity":
+            self.activation = nn.Identity()
+            
+    def forward(self, x):
+
+        x = self.dense(x)
+
+        if self.use_norm:
+            x = self.bn(x)
+
+        x = self.activation(x)
+        
+        return x
+
 class block(nn.Module):
     
-    def __init__(self, input_channels, output_channels, kernel, strides, pad, activation="relu", norm = True, use_transpose=True):
+    def __init__(self, input_channels, output_channels, kernel, strides, pad, activation="relu", norm = True, use_transpose=False, upsample=False):
         super().__init__()
 
         if use_transpose:
@@ -17,7 +53,8 @@ class block(nn.Module):
             self.conv = nn.Conv2d(in_channels = input_channels, out_channels = output_channels, kernel_size = kernel, stride = strides, padding = pad)
 
         self.use_norm = norm
-
+        self.upsample = upsample 
+        
         if norm:
             self.bn = nn.BatchNorm2d(output_channels)
         if activation == "relu":
@@ -39,6 +76,9 @@ class block(nn.Module):
             x = self.bn(x)
 
         x = self.activation(x)
+        
+        if self.upsample:
+            x = F.interpolate(x, scale_factor=2, mode="nearest")
 
         return x
 
@@ -47,12 +87,15 @@ class Resblock(nn.Module):
     def __init__(self, input_channels, output_channels, kernel, strides, pad, activation="relu", norm = True):
         super().__init__()
 
-        self.conv = nn.Conv2d(in_channels = input_channels, out_channels = output_channels, kernel_size = kernel, stride = strides, padding = pad)
+        self.conv1 = nn.Conv2d(in_channels = input_channels, out_channels = output_channels, kernel_size = kernel, stride = strides, padding = pad)
+        self.conv2 = nn.Conv2d(in_channels = output_channels, out_channels = output_channels, kernel_size = kernel, stride = strides, padding = pad)
 
         self.use_norm = norm
 
         if norm:
-            self.bn = nn.BatchNorm2d(output_channels)
+            self.bn1 = nn.BatchNorm2d(output_channels)
+            self.bn2 = nn.BatchNorm2d(output_channels)
+            
         if activation == "relu":
             self.activation = nn.ReLU(inplace=True)
         elif activation == "leakyrelu":
@@ -64,14 +107,15 @@ class Resblock(nn.Module):
 
     def forward(self, x1):
 
-        x = self.bn(x1)
+        x = self.conv1(x1)
+        x = self.bn1(x)
         x = self.activation(x)
-        x = self.conv(x)
-        x = self.bn(x)
-        x = self.activation(x)
-        x = self.conv(x)
-
+        x = self.conv2(x)
+        x = self.bn2(x)
+        
         x+=x1
+        x = self.activation(x)
+        
         return x
 
 class Anchors(nn.Module):
@@ -93,8 +137,10 @@ class Anchors(nn.Module):
         
         image_shape = image.shape[2:]
         image_shape = np.array(image_shape)
+        print(image_shape)
+        print((image_shape + 2 ** 3 - 1))
         image_shapes = [(image_shape + 2 ** x - 1) // (2 ** x) for x in self.pyramid_levels]
-
+        print(image_shapes)
         # compute anchors over all pyramid levels
         all_anchors = np.zeros((0, 4)).astype(np.float32)
 
@@ -104,6 +150,7 @@ class Anchors(nn.Module):
             all_anchors     = np.append(all_anchors, shifted_anchors, axis=0)
 
         all_anchors = np.expand_dims(all_anchors, axis=0)
+        print(all_anchors)
 
         if torch.cuda.is_available():
             return torch.from_numpy(all_anchors.astype(np.float32)).cuda()
@@ -129,6 +176,7 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
 
     # scale base_size
     anchors[:, 2:] = base_size * np.tile(scales, (2, len(ratios))).T
+    print(anchors)
 
     # compute areas of anchors
     areas = anchors[:, 2] * anchors[:, 3]
@@ -136,6 +184,7 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
     # correct for ratios
     anchors[:, 2] = np.sqrt(areas / np.repeat(ratios, len(scales)))
     anchors[:, 3] = anchors[:, 2] * np.repeat(ratios, len(scales))
+    print(anchors)
 
     # transform from (x_ctr, y_ctr, w, h) -> (x1, y1, x2, y2)
     anchors[:, 0::2] -= np.tile(anchors[:, 2] * 0.5, (2, 1)).T
@@ -195,6 +244,7 @@ def shift(shape, stride, anchors):
     K = shifts.shape[0]
     all_anchors = (anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2)))
     all_anchors = all_anchors.reshape((K * A, 4))
+    print(all_anchors)
 
     return all_anchors
 
