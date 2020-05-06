@@ -8,6 +8,16 @@ import torchvision.models.resnet as resnet
 
 EPSILON = 1e-8
 
+def dice_loss(input, target):
+    smooth = 1.
+
+    iflat = input.view(-1)
+    tflat = target.view(-1)
+    intersection = (iflat * tflat).sum()
+    
+    return 1 - ((2. * intersection + smooth) /
+              (iflat.sum() + tflat.sum() + smooth))
+
 def get_base_model(name):
     if name=="resnet18":
         return resnet.resnet18()

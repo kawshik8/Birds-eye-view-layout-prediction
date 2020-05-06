@@ -71,7 +71,7 @@ parser.add_argument(
     "--road-map-loss",
     type=str,
     default="bce",
-    choices=["bce","mse"],
+    choices=["bce","mse","dice"],
     help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
 

@@ -15,7 +15,7 @@ import logging as log
 from GANmodels import get_adv_model
 from utils import get_base_model
 from model_helpers import PyramidFeatures, Fusion, ClassificationModel, RegressionModel, ObjectDetectionHeads, DecoderNetwork
-from utils import dblock
+from utils import dblock,dice_loss
 
 OUT_BLOCK4_DIMENSION_DICT = {"resnet18": 512, "resnet34":512, "resnet50":2048, "resnet101":2048,
                               "resnet152":2048}
@@ -217,6 +217,7 @@ class ViewGenModels(ViewModel):
                 self.criterion = torch.nn.MSELoss()
             elif self.loss_type == "bce":
                 self.criterion = torch.nn.BCEWithLogitsLoss()
+            
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1,1))     
         
@@ -293,8 +294,13 @@ class ViewGenModels(ViewModel):
                 mapped_image = self.decoder_network(fusion)#fusion)
                 
                 # if self.training:
-                batch_output["recon_loss"] = self.criterion(mapped_image, mapped_image)
+                
                 batch_output["road_map"] = torch.sigmoid(mapped_image)
+                if self.loss_type == "dice":
+                    batch_output["recon_loss"] = dice_loss(batch_input["road"], batch_output["road_map"])
+                else:
+                    batch_output["recon_loss"] = self.criterion(batch_output["road_map"], batch_input["road"])
+                
                 batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
                 batch_output["ts"] = batch_output["ts_road_map"]
                 batch_output["loss"] += batch_output["recon_loss"]
@@ -319,12 +325,14 @@ class ViewGenModels(ViewModel):
   
                 generated_image = self.decoder_network(z)
 
-                reconstruction_loss = self.criterion(generated_image, generated_image)
-                kl_divergence_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+                
 
                 batch_output["road_map"] = torch.sigmoid(generated_image)
-                batch_output["recon_loss"] = reconstruction_loss
-                batch_output["KLD_loss"] = kl_divergence_loss
+                if self.loss_type == "dice":
+                    batch_output["recon_loss"] = dice_loss(batch_input["road"], batch_output["road_map"])
+                else:
+                    batch_output["recon_loss"] = self.criterion(batch_output["road_map"], batch_input["road"])
+                batch_output["KLD_loss"] = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
                 batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
                 batch_output["ts"] = batch_output["ts_road_map"]
                 batch_output["loss"] += batch_output["recon_loss"] + batch_output["KLD_loss"]

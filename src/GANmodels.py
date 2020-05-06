@@ -344,7 +344,11 @@ class ViewGANModels(GAN):
         batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
         batch_output["ts"] = batch_output["ts_road_map"]
         # batch_output["GDiscloss"] = self.criterion(fake_disc_op,ones)
-        batch_output["GSupLoss"] = self.criterion(batch_output["road_map"],batch_input["road"])
+        if self.loss_type == "dice":
+            batch_output["GSupLoss"] = dice_loss(batch_input["road"], batch_output["road_map"])
+        else:
+            batch_output["GSupLoss"] = self.criterion(batch_output["road_map"], batch_input["road"])
+        # batch_output["GSupLoss"] = self.criterion(batch_output["road_map"],batch_input["road"])
         # batch_output["Gloss"] = batch_output["GDiscloss"] + batch_output["GSupLoss"]
 
         # batch_output["loss"] = batch_output["Dloss"] + batch_output["Gloss"]
