@@ -336,7 +336,7 @@ class GANTrainer(object):
                 adv_output = self.model["discriminator"](batch_output["road_map"])
 
                 batch_output["GDiscLoss"] = F.binary_cross_entropy(adv_output,ones)
-                batch_output["GLoss"] = batch_output["GDiscLoss"] #+ batch_output["GSupLoss"]
+                batch_output["GLoss"] = batch_output["GDiscLoss"] + batch_output["GSupLoss"]
 
                 
                 batch_output["GLoss"].backward()
@@ -365,22 +365,40 @@ class GANTrainer(object):
                     and self.training_infos["current_iter"] % self.val_interval == 0
                 ):
                     eval_scores = self.eval("val")
-                    if eval_scores[self.task.eval_metric] < self.training_infos["best_performance"]:
-                        self.training_infos["best_performance"] = eval_scores[self.task.eval_metric]
-                        self.training_infos["best_iter"] = self.training_infos["current_iter"]
-                        log.info("Best validation updated: %s" % self.training_infos)
-                        save_model(
-                            os.path.join(
-                                self.args.exp_dir, "%s_%s_generator_best.ckpt" % (self.stage, self.task.name),
-                            ),
-                            self.model["generator"],
-                        )
-                        save_model(
-                            os.path.join(
-                                self.args.exp_dir, "%s_%s_discriminator_best.ckpt" % (self.stage, self.task.name),
-                            ),
-                            self.model["discriminator"],
-                        )
+                    if "loss" in self.task.eval_metric:
+                        if eval_scores[self.task.eval_metric] < self.training_infos["best_performance"]:
+                            self.training_infos["best_performance"] = eval_scores[self.task.eval_metric]
+                            self.training_infos["best_iter"] = self.training_infos["current_iter"]
+                            log.info("Best validation updated: %s" % self.training_infos)
+                            save_model(
+                                os.path.join(
+                                    self.args.exp_dir, "%s_%s_generator_best.ckpt" % (self.stage, self.task.name),
+                                ),
+                                self.model["generator"],
+                            )
+                            save_model(
+                                os.path.join(
+                                    self.args.exp_dir, "%s_%s_discriminator_best.ckpt" % (self.stage, self.task.name),
+                                ),
+                                self.model["discriminator"],
+                            )
+                    else:
+                        if eval_scores[self.task.eval_metric] > self.training_infos["best_performance"]:
+                            self.training_infos["best_performance"] = eval_scores[self.task.eval_metric]
+                            self.training_infos["best_iter"] = self.training_infos["current_iter"]
+                            log.info("Best validation updated: %s" % self.training_infos)
+                            save_model(
+                                os.path.join(
+                                    self.args.exp_dir, "%s_%s_generator_best.ckpt" % (self.stage, self.task.name),
+                                ),
+                                self.model["generator"],
+                            )
+                            save_model(
+                                os.path.join(
+                                    self.args.exp_dir, "%s_%s_discriminator_best.ckpt" % (self.stage, self.task.name),
+                                ),
+                                self.model["discriminator"],
+                            )
                     self.model["generator"].train()
                     self.model["discriminator"].train()
                 if (
