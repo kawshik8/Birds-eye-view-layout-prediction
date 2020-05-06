@@ -291,10 +291,9 @@ class GANTrainer(object):
                 self.model["discriminator"].zero_grad()
 
                 batch_output = self.model["generator"](batch_input, self.task)
-                gen_image = batch_output["road_map"]
 
                 real_disc_inp = batch_input["road"]
-                fake_disc_inp = gen_image.detach()
+                
 
                 if "patch" in self.args.disc_type:
                     b,c,h,w = real_disc_inp.shape
@@ -308,21 +307,24 @@ class GANTrainer(object):
                     ones = torch.ones(bs,1).to(self.args.device)
 
                 real_disc_op = self.model["discriminator"](real_disc_inp)
-                print(ones.shape, real_disc_op.shape)
+                # print(ones.shape, real_disc_op.shape)
                 batch_output["real_DLoss"] = F.binary_cross_entropy(real_disc_op,ones)
                 batch_output["real_DLoss"].backward()
 
-                fake_disc_op = self.model["discriminator"](fake_disc_inp)
+                
+                generated = batch_output["road_map"].detach()
+
+                fake_disc_op = self.model["discriminator"](generated)
                 batch_output["fake_DLoss"] = F.binary_cross_entropy(fake_disc_op,zeros)
                 batch_output["fake_DLoss"].backward()
                 batch_output["DLoss"] = batch_output["real_DLoss"] + batch_output["fake_DLoss"]
                 self.d_optimizer.step()
 
                 self.model["generator"].zero_grad()
-                adv_output = self.model["discriminator"](gen_image)
+                adv_output = self.model["discriminator"](batch_output["road_map"])
 
                 batch_output["GDiscLoss"] = F.binary_cross_entropy(adv_output,ones)
-                batch_output["GLoss"] = batch_output["GDiscLoss"] + batch_output["GSupLoss"]
+                batch_output["GLoss"] = batch_output["GDiscLoss"] #+ batch_output["GSupLoss"]
 
                 
                 batch_output["GLoss"].backward()

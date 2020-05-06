@@ -49,9 +49,12 @@ class Discriminator(nn.Module):
             
         self.network = nn.Sequential(*network_layers)
 
-        
+        self.disc_finetune_params += list(self.network.parameters())
+
         if "patch" not in self.type:
             self.final = dblock(2048,1,activation="sigmoid")
+            self.disc_finetune_params += list(self.final.parameters())
+        
 
     def config_stage(self, stage):
     
@@ -339,6 +342,7 @@ class ViewGANModels(GAN):
 
         batch_output["road_map"] = torch.sigmoid(gen_image)
         batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
+        batch_output["ts"] = batch_output["ts_road_map"]
         # batch_output["GDiscloss"] = self.criterion(fake_disc_op,ones)
         batch_output["GSupLoss"] = self.criterion(batch_output["road_map"],batch_input["road"])
         # batch_output["Gloss"] = batch_output["GDiscloss"] + batch_output["GSupLoss"]

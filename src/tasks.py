@@ -248,7 +248,8 @@ class Task(object):
         if pretrain:
             self.eval_metric = "loss"
         else:
-            self.eval_metric = "loss"
+            self.eval_metric = "ts"
+            #self.eval_metric = "loss"
             # if "adv" in args.finetune_obj:
             #     self.eval_metric = "Gloss"
         # if self.pretrain:

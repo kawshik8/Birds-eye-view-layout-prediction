@@ -325,6 +325,7 @@ class ViewGenModels(ViewModel):
                 batch_output["recon_loss"] = reconstruction_loss
                 batch_output["KLD_loss"] = kl_divergence_loss
                 batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],generated_image)
+                batch_output["ts"] = batch_output["ts_road_map"]
                 batch_output["loss"] += batch_output["recon_loss"] + batch_output["KLD_loss"]
 
         if self.detect_objects:

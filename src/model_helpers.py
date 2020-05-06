@@ -10,6 +10,7 @@ from torchvision.ops import nms
 from itertools import permutations,combinations
 from torch.nn.modules.module import Module
 from utils import Anchors, BBoxTransform, ClipBoxes, block, Resblock, dblock
+import math
 
 
 class PyramidFeatures(nn.Module):
@@ -100,6 +101,7 @@ class RegressionModel(nn.Module):
         self.output = nn.Conv2d(feature_size, num_anchors * 4, kernel_size=3, padding=1)
 
     def forward(self, x):
+        print("input shape",x.shape)
         out = self.conv1(x)
         out = self.act1(out)
 
@@ -122,7 +124,7 @@ class RegressionModel(nn.Module):
         # out is B x C x W x H, with C = 4*num_anchors
         out = out.permute(0, 2, 3, 1)
 
-        # print("final1", out.shape)
+        print("final1", out.shape)
 
         return out.contiguous().view(out.shape[0], -1, 4)
 
@@ -205,10 +207,10 @@ class ObjectDetectionHeads(nn.Module):
         # print(image_network)
         self.image_network = image_network
         self.init_layers = self.image_network[0]
-        self.block1 = self.image_network[1]
-        self.block2 = self.image_network[2]
-        self.block3 = self.image_network[3]
-        self.block4 = self.image_network[4]
+        self.block1 = self.image_network[-4]
+        self.block2 = self.image_network[-3]
+        self.block3 = self.image_network[-2]
+        self.block4 = self.image_network[-1]
         
         self.decoder_network = decoder_network
         
@@ -311,12 +313,13 @@ class ObjectDetectionHeads(nn.Module):
         # print(features[0].shape,features[1].shape, features[2].shape)
         # print([(self.regressionModel(feature).shape,feature.shape) for feature in features])
         regression = torch.cat([self.regressionModel(feature) for feature in features], dim=1)
-        # print("regression:", regression.shape)
+        print("regression:", regression.shape)
 
         classification = torch.cat([self.classificationModel(feature) for feature in features], dim=1)
-        # print("classification:",classification.shape)
+        print("classification:",classification.shape)
 
         anchors = self.anchors(batch_input["image"].flatten(0,1))
+        print(anchors.shape)
 
         # if self.training:
             # print(classification.shape, regression.shape, anchors.shape, annotations.shape)
@@ -330,6 +333,7 @@ class ObjectDetectionHeads(nn.Module):
         if self.training:
             batch_output["classes"] = classification
             batch_output["boxes"] = regression
+            batch_output["ts"] += batch_output["ts_boxes"]
 
         else:
 
@@ -367,6 +371,7 @@ class ObjectDetectionHeads(nn.Module):
 
             batch_output["classes"] = classification
             batch_output["boxes"] = regression
+            batch_output["ts"] += batch_output["ts_boxes"]
             
         return batch_output
 
@@ -549,7 +554,7 @@ class Fusion(nn.Module):
             x = self.refine_after_fuse(x)
 
         if self.dcrefine_nlayers > 0:
-            
+
             if self.conv_fusion:
                 x = self.avg_pool(x).view(-1,self.dim)
 
