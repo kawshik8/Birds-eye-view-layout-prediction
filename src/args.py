@@ -75,7 +75,6 @@ parser.add_argument(
     help="pretrain task, '_un' is for unsupervised. 'none' means skip pretrain",
 )
 
-
 parser.add_argument(
     "--gen-road-map",
     type=int,

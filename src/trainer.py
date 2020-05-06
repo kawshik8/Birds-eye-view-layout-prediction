@@ -47,7 +47,7 @@ class Trainer(object):
         self.task.reset_scorers()
         with torch.no_grad():
             for batch, inputs in enumerate(self.task.data_iterators[split]):
-              if batch < 5:
+            #   if batch < 5:
                 if self.stage == "pretrain":
                     index, image, query = inputs
                     batch_input = {"image":image,"query":query,"idx":index}
@@ -210,7 +210,7 @@ class GANTrainer(object):
         self.task.reset_scorers()
         with torch.no_grad():
             for batch, inputs in enumerate(self.task.data_iterators[split]):
-              if batch < 5:
+            #   if batch < 5:
                 if self.stage == "pretrain":
                     index, image, query = inputs
                     batch_input = {"image":image,"query":query,"idx":index}
@@ -305,7 +305,7 @@ class GANTrainer(object):
                 batch_output = self.model["generator"](batch_input, self.task)
 
                 real_disc_inp = batch_input["road"]
-                
+                # print(real_disc_inp.shape)
 
                 if "patch" in self.args.disc_type:
                     b,c,h,w = real_disc_inp.shape

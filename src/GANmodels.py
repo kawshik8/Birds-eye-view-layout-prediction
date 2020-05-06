@@ -11,8 +11,7 @@ import logging as log
 from utils import get_base_model
 from model_helpers import PyramidFeatures, Fusion, ClassificationModel, RegressionModel, ObjectDetectionHeads, DecoderNetwork
 from losses import compute_ts_road_map, compute_ats_bounding_boxes
-
-from utils import block, dblock
+from utils import block, dblock,dice_loss
 
 OUT_BLOCK4_DIMENSION_DICT = {"resnet18": 512, "resnet34":512, "resnet50":2048, "resnet101":2048,
                               "resnet152":2048}
@@ -55,7 +54,7 @@ class Discriminator(nn.Module):
             self.final = dblock(2048,1,activation="sigmoid")
             self.disc_finetune_params += list(self.final.parameters())
         
-
+        # print(self.network)
     def config_stage(self, stage):
     
         self.stage = "finetune"
@@ -82,6 +81,7 @@ class Discriminator(nn.Module):
         if "patch" in self.type:
             out = output
         else:
+            # print(output.view(b,-1).shape)
             out = self.final(output.view(b,-1))
 
         return out
@@ -214,7 +214,7 @@ class ViewGANModels(GAN):
 
             # print("dfuse",self.dense_fuse, "cfuse", self.conv_fuse, "dproj", self.dense_project)
         self.fuse = Fusion(args, self.d_model, frefine_layers=self.frefine_layers, brefine_layers=self.brefine_layers, drefine_layers=self.drefine_layers, dense_fusion=self.dense_fuse, conv_fusion=self.conv_fuse, dcrefine_layers=self.dcrefine_layers)                           
-        print(self.fuse)
+        # print(self.fuse)
                                               
         out_dim = 1
         
@@ -247,7 +247,7 @@ class ViewGANModels(GAN):
                 self.decoder_network = DecoderNetwork(init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_convs_before_decoding=True)
 
             
-            print(self.decoder_network)
+            # print(self.decoder_network)
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1,1))     
 
@@ -344,10 +344,13 @@ class ViewGANModels(GAN):
         batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
         batch_output["ts"] = batch_output["ts_road_map"]
         # batch_output["GDiscloss"] = self.criterion(fake_disc_op,ones)
-        if self.loss_type == "dice":
+        if self.args.road_map_loss == "dice":
             batch_output["GSupLoss"] = dice_loss(batch_input["road"], batch_output["road_map"])
         else:
             batch_output["GSupLoss"] = self.criterion(batch_output["road_map"], batch_input["road"])
+        # else:
+        #     batch_output["GSupLoss"] = self.criterion(batch_output["road_map"], batch_input["road"])
+
         # batch_output["GSupLoss"] = self.criterion(batch_output["road_map"],batch_input["road"])
         # batch_output["Gloss"] = batch_output["GDiscloss"] + batch_output["GSupLoss"]
 

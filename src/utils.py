@@ -59,6 +59,7 @@ class dblock(nn.Module):
         x = self.dense(x)
 
         if self.use_norm:
+            # print(x.shape)
             x = self.bn(x)
 
         x = self.activation(x)
@@ -92,7 +93,7 @@ class block(nn.Module):
             self.activation = nn.Identity()
             
     def forward(self, x):
-
+        # print(x.shape)
         x = self.conv(x)
 
         if self.use_norm:

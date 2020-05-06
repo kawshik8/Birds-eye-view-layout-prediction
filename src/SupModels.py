@@ -298,6 +298,8 @@ class ViewGenModels(ViewModel):
                 batch_output["road_map"] = torch.sigmoid(mapped_image)
                 if self.loss_type == "dice":
                     batch_output["recon_loss"] = dice_loss(batch_input["road"], batch_output["road_map"])
+                elif self.loss_type=='bce':
+                    batch_output["recon_loss"] = self.criterion(mapped_image, batch_input["road"])
                 else:
                     batch_output["recon_loss"] = self.criterion(batch_output["road_map"], batch_input["road"])
                 
@@ -328,10 +330,14 @@ class ViewGenModels(ViewModel):
                 
 
                 batch_output["road_map"] = torch.sigmoid(generated_image)
+
                 if self.loss_type == "dice":
                     batch_output["recon_loss"] = dice_loss(batch_input["road"], batch_output["road_map"])
+                elif self.loss_type=='bce':
+                    batch_output["recon_loss"] = self.criterion(generated_image, batch_input["road"])
                 else:
                     batch_output["recon_loss"] = self.criterion(batch_output["road_map"], batch_input["road"])
+
                 batch_output["KLD_loss"] = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
                 batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
                 batch_output["ts"] = batch_output["ts_road_map"]
