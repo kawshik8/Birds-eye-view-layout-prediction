@@ -366,9 +366,9 @@ class Task(object):
             # TODO: Update this when new auxiliary losses are introduced
         else:
             if "adv" in self.args.finetune_obj:
-                self.scorers.update({"loss": [], "GLoss": [], "GSupLoss": [], "GDiscLoss": [], "fake_DLoss": [], "real_DLoss":[], "ts_road_map":[]})#, "ts_boxes":[]})
+                self.scorers.update({"loss": [], "ts": [], "GLoss": [], "GSupLoss": [], "GDiscLoss": [], "fake_DLoss": [], "real_DLoss":[], "ts_road_map":[]})#, "ts_boxes":[]})
             else:
-                self.scorers.update({"loss": [], "classification_loss": [], "detection_loss": [], "KLD_loss": [], "recon_loss":[], "ts_road_map":[], "ts_boxes":[]})
+                self.scorers.update({"loss": [], "ts": [], "classification_loss": [], "detection_loss": [], "KLD_loss": [], "recon_loss":[], "ts_road_map":[], "ts_boxes":[]})
 
                 # print(self.scorers.keys())
 

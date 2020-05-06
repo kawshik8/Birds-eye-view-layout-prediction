@@ -20,7 +20,7 @@ class Trainer(object):
         if "loss" in self.task.eval_metric:
             best = float('inf')
         else:
-            best = float('-inf')
+            best = 0
 
         self.training_infos = {"best_iter": -1, "best_performance": best, "current_iter": 0}
         self.report_interval = args.report_interval
@@ -121,16 +121,28 @@ class Trainer(object):
                     and self.training_infos["current_iter"] % self.val_interval == 0
                 ):
                     eval_scores = self.eval("val")
-                    if eval_scores[self.task.eval_metric] < self.training_infos["best_performance"]:
-                        self.training_infos["best_performance"] = eval_scores[self.task.eval_metric]
-                        self.training_infos["best_iter"] = self.training_infos["current_iter"]
-                        log.info("Best validation updated: %s" % self.training_infos)
-                        save_model(
-                            os.path.join(
-                                self.args.exp_dir, "%s_%s_best.ckpt" % (self.stage, self.task.name),
-                            ),
-                            self.model,
-                        )
+                    if "loss" not in self.task.eval_metric:
+                        if eval_scores[self.task.eval_metric] > self.training_infos["best_performance"]:
+                            self.training_infos["best_performance"] = eval_scores[self.task.eval_metric]
+                            self.training_infos["best_iter"] = self.training_infos["current_iter"]
+                            log.info("Best validation updated: %s" % self.training_infos)
+                            save_model(
+                                os.path.join(
+                                    self.args.exp_dir, "%s_%s_best.ckpt" % (self.stage, self.task.name),
+                                ),
+                                self.model,
+                            )
+                    else:
+                        if eval_scores[self.task.eval_metric] < self.training_infos["best_performance"]:
+                            self.training_infos["best_performance"] = eval_scores[self.task.eval_metric]
+                            self.training_infos["best_iter"] = self.training_infos["current_iter"]
+                            log.info("Best validation updated: %s" % self.training_infos)
+                            save_model(
+                                os.path.join(
+                                    self.args.exp_dir, "%s_%s_best.ckpt" % (self.stage, self.task.name),
+                                ),
+                                self.model,
+                            )
                     self.model.train()
                     self.scheduler.step(metrics=eval_scores["loss"],epoch=epoch)
                 if (

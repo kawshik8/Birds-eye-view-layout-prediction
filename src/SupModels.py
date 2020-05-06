@@ -295,7 +295,8 @@ class ViewGenModels(ViewModel):
                 # if self.training:
                 batch_output["recon_loss"] = self.criterion(mapped_image, mapped_image)
                 batch_output["road_map"] = torch.sigmoid(mapped_image)
-                batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],mapped_image)
+                batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
+                batch_output["ts"] = batch_output["ts_road_map"]
                 batch_output["loss"] += batch_output["recon_loss"]
                 # else:
                 #     return torch.sigmoid(mapped_image)
@@ -324,7 +325,7 @@ class ViewGenModels(ViewModel):
                 batch_output["road_map"] = torch.sigmoid(generated_image)
                 batch_output["recon_loss"] = reconstruction_loss
                 batch_output["KLD_loss"] = kl_divergence_loss
-                batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],generated_image)
+                batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
                 batch_output["ts"] = batch_output["ts_road_map"]
                 batch_output["loss"] += batch_output["recon_loss"] + batch_output["KLD_loss"]
 
