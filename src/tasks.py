@@ -68,7 +68,7 @@ def collater(data):
 
         max_boxes = max(shapes)
 
-        bboxes = torch.ones(bs,max_boxes,4)*-1
+        bboxes = torch.ones(bs,max_boxes,5)*-1
         classes = torch.ones(bs,max_boxes,1)*-1
         actions = torch.ones(bs,max_boxes)*-1
 
@@ -397,6 +397,9 @@ class Task(object):
         self.scorers["count"] += count
         for key in self.scorers.keys():
             if key != "count":
+                # if key == "ts":
+                    # print(batch_output[key])
+                    # print(self.scorers[key])
                 self.scorers[key].append(batch_output[key].cpu().sum() * count)
 
     def report_scorers(self, reset=False):

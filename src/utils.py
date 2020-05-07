@@ -143,7 +143,7 @@ class Resblock(nn.Module):
         return x
 
 class Anchors(nn.Module):
-    def __init__(self, pyramid_levels=None, strides=None, sizes=None, ratios=None, scales=None):
+    def __init__(self, pyramid_levels=None, strides=None, sizes=None, ratios=None, scales=None, angles=None):
         super(Anchors, self).__init__()
 
         if pyramid_levels is None:
@@ -153,35 +153,39 @@ class Anchors(nn.Module):
         if sizes is None:
             self.sizes = [2 ** (x + 2) for x in self.pyramid_levels]
         if ratios is None:
-            self.ratios = np.array([0.5, 1, 2])
+            self.ratios = np.array([0.2, 0.5, 1, 2])
         if scales is None:
-            self.scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)])
+            self.scales = np.array([0.02, 0.05, 0.08])
+        if angles is None:
+            self.angles = np.array([0, np.pi/12, np.pi/6, np.pi/4, np.pi/3,   np.pi*5/12, 
+                                     -np.pi/12, -np.pi/6, -np.pi/4, -np.pi/3, -np.pi*5/12])
 
     def forward(self, image):
         
         image_shape = image.shape[2:]
         image_shape = np.array(image_shape)
-        print(image_shape)
-        print((image_shape + 2 ** 3 - 1))
+        # print(image_shape)
+        # print((image_shape + 2 ** 3 - 1))
         image_shapes = [(image_shape + 2 ** x - 1) // (2 ** x) for x in self.pyramid_levels]
-        print(image_shapes)
+        # print("image shapes:", image_shapes)
         # compute anchors over all pyramid levels
-        all_anchors = np.zeros((0, 4)).astype(np.float32)
+        all_anchors = np.zeros((0, 5)).astype(np.float32)
 
         for idx, p in enumerate(self.pyramid_levels):
-            anchors         = generate_anchors(base_size=self.sizes[idx], ratios=self.ratios, scales=self.scales)
+            # print("pyramid lebel:",idx," base size:",self.sizes[idx])
+            anchors         = generate_anchors(base_size=self.sizes[idx], ratios=self.ratios, scales=self.scales, angles=self.angles)
             shifted_anchors = shift(image_shapes[idx], self.strides[idx], anchors)
             all_anchors     = np.append(all_anchors, shifted_anchors, axis=0)
 
         all_anchors = np.expand_dims(all_anchors, axis=0)
-        print(all_anchors)
+        # print("all_anhors shape:", all_anchors.shape)
 
         if torch.cuda.is_available():
             return torch.from_numpy(all_anchors.astype(np.float32)).cuda()
         else:
             return torch.from_numpy(all_anchors.astype(np.float32))
 
-def generate_anchors(base_size=16, ratios=None, scales=None):
+def generate_anchors(base_size=16, ratios=None, scales=None, angles=None):
     """
     Generate anchor (reference) windows by enumerating aspect ratios X
     scales w.r.t. a reference window.
@@ -193,26 +197,32 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
     if scales is None:
         scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)])
 
-    num_anchors = len(ratios) * len(scales)
+    num_anchors = len(ratios) * len(scales) * len(angles)
 
     # initialize output anchors
-    anchors = np.zeros((num_anchors, 4))
+    anchors = np.zeros((num_anchors, 5))
 
     # scale base_size
-    anchors[:, 2:] = base_size * np.tile(scales, (2, len(ratios))).T
-    print(anchors)
+    # anchors[:, 2:4] = base_size * np.tile(scales, (2, len(ratios))).T
+    anchors[:, 2:4] = base_size * np.tile(scales, (2, len(ratios)*len(angles))).T
+    # print("scale base size:", anchors)
 
     # compute areas of anchors
     areas = anchors[:, 2] * anchors[:, 3]
 
     # correct for ratios
-    anchors[:, 2] = np.sqrt(areas / np.repeat(ratios, len(scales)))
-    anchors[:, 3] = anchors[:, 2] * np.repeat(ratios, len(scales))
-    print(anchors)
+    # anchors[:, 2] = np.sqrt(areas / np.repeat(ratios, len(scales)))
+    # anchors[:, 3] = anchors[:, 2] * np.repeat(ratios, len(scales))
+    anchors[:, 2] = np.sqrt(areas / np.repeat(ratios, len(scales) * len(angles)))
+    anchors[:, 3] = anchors[:, 2] * np.repeat(ratios, len(scales) * len(angles))
+    # print("correct_for_ratios:", anchors)
+    # print(anchors)
 
     # transform from (x_ctr, y_ctr, w, h) -> (x1, y1, x2, y2)
-    anchors[:, 0::2] -= np.tile(anchors[:, 2] * 0.5, (2, 1)).T
+    anchors[:, 0:3:2] -= np.tile(anchors[:, 2] * 0.5, (2, 1)).T
     anchors[:, 1::2] -= np.tile(anchors[:, 3] * 0.5, (2, 1)).T
+    anchors[:, 4] = np.tile(np.repeat(angles, len(ratios)), len(scales))
+    # print(anchors)
 
     return anchors
 
@@ -246,6 +256,7 @@ def anchors_for_shape(
         shifted_anchors = shift(image_shapes[idx], strides[idx], anchors)
         all_anchors     = np.append(all_anchors, shifted_anchors, axis=0)
 
+    # print(all_anchors)
     return all_anchors
 
 
@@ -266,9 +277,10 @@ def shift(shape, stride, anchors):
     # reshape to (K*A, 4) shifted anchors
     A = anchors.shape[0]
     K = shifts.shape[0]
-    all_anchors = (anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2)))
-    all_anchors = all_anchors.reshape((K * A, 4))
-    print(all_anchors)
+    shifts = np.concatenate((shifts, np.zeros((K,1))), axis=1)
+    all_anchors = (anchors.reshape((1, A, 5)) + shifts.reshape((1, K, 5)).transpose((1, 0, 2)))
+    all_anchors = all_anchors.reshape((K * A, 5))
+    # print(all_anchors)
 
     return all_anchors
 
@@ -278,43 +290,58 @@ class BBoxTransform(nn.Module):
         super(BBoxTransform, self).__init__()
         if mean is None:
             if torch.cuda.is_available():
-                self.mean = torch.from_numpy(np.array([0, 0, 0, 0]).astype(np.float32)).cuda()
+                self.mean = torch.from_numpy(np.array([0, 0, 0, 0, 0]).astype(np.float32)).cuda()
             else:
-                self.mean = torch.from_numpy(np.array([0, 0, 0, 0]).astype(np.float32))
+                self.mean = torch.from_numpy(np.array([0, 0, 0, 0, 0]).astype(np.float32))
 
         else:
             self.mean = mean
         if std is None:
             if torch.cuda.is_available():
-                self.std = torch.from_numpy(np.array([0.1, 0.1, 0.2, 0.2]).astype(np.float32)).cuda()
+                self.std = torch.from_numpy(np.array([0.1, 0.1, 0.2, 0.2, 1]).astype(np.float32)).cuda()
             else:
-                self.std = torch.from_numpy(np.array([0.1, 0.1, 0.2, 0.2]).astype(np.float32))
+                self.std = torch.from_numpy(np.array([0.1, 0.1, 0.2, 0.2, 1]).astype(np.float32))
         else:
             self.std = std
 
     def forward(self, boxes, deltas):
+        print(boxes.shape, deltas.shape)
 
         widths  = boxes[:, :, 2] - boxes[:, :, 0]
         heights = boxes[:, :, 3] - boxes[:, :, 1]
         ctr_x   = boxes[:, :, 0] + 0.5 * widths
         ctr_y   = boxes[:, :, 1] + 0.5 * heights
+        alpha   = boxes[:, :, 4]
 
         dx = deltas[:, :, 0] * self.std[0] + self.mean[0]
         dy = deltas[:, :, 1] * self.std[1] + self.mean[1]
         dw = deltas[:, :, 2] * self.std[2] + self.mean[2]
         dh = deltas[:, :, 3] * self.std[3] + self.mean[3]
+        dalpha = deltas[:, :, 4] * self.std[4] + self.mean[4]
 
         pred_ctr_x = ctr_x + dx * widths
         pred_ctr_y = ctr_y + dy * heights
         pred_w     = torch.exp(dw) * widths
         pred_h     = torch.exp(dh) * heights
+        pred_alpha = torch.atan(dalpha) + alpha
 
         pred_boxes_x1 = pred_ctr_x - 0.5 * pred_w
         pred_boxes_y1 = pred_ctr_y - 0.5 * pred_h
-        pred_boxes_x2 = pred_ctr_x + 0.5 * pred_w
+        pred_boxes_x4 = pred_ctr_x + 0.5 * pred_w
+        pred_boxes_y4 = pred_ctr_y + 0.5 * pred_h
+        pred_boxes_x2 = pred_ctr_x - 0.5 * pred_w
         pred_boxes_y2 = pred_ctr_y + 0.5 * pred_h
+        pred_boxes_x3 = pred_ctr_x + 0.5 * pred_w
+        pred_boxes_y3 = pred_ctr_y - 0.5 * pred_h
 
-        pred_boxes = torch.stack([pred_boxes_x1, pred_boxes_y1, pred_boxes_x2, pred_boxes_y2], dim=2)
+        pred_boxes = torch.cat([pred_boxes_x1, pred_boxes_x2, pred_boxes_x3, pred_boxes_x4, pred_boxes_y1, pred_boxes_y2, pred_boxes_y3, pred_boxes_y4]).view(pred_boxes_y4.shape[0],pred_boxes_y4.shape[1],2,4).transpose(2,3)
+        rotation_matrix = torch.cat([torch.cos(-pred_alpha), -torch.sin(-pred_alpha), torch.sin(-pred_alpha), torch.cos(-pred_alpha)]).view(pred_boxes_y4.shape[0],pred_boxes_y4.shape[1],2,2)
+        # rotation_matrix = torch.from_numpy(rotation_matrix)
+        bbox_rotated = torch.matmul(rotation_matrix, torch.transpose(pred_boxes, 2, 3))
+
+        pred_boxes = bbox_rotated.transpose(2,3)
+
+        # pred_boxes = torch.stack([pred_boxes_x1, pred_boxes_y1, pred_boxes_x2, pred_boxes_y2], dim=2)
 
         return pred_boxes
 
@@ -326,13 +353,13 @@ class ClipBoxes(nn.Module):
 
     def forward(self, boxes, img):
 
+        print(boxes.shape, img.shape)
         batch_size, num_channels, height, width = img.shape
         
-        boxes[:, :, 0] = torch.clamp(boxes[:, :, 0], min=0)
-        boxes[:, :, 1] = torch.clamp(boxes[:, :, 1], min=0)
+        boxes[:, :, :, 0] = torch.clamp(boxes[:, :, :, 0], min=0, max=width)
+        boxes[:, :, :, 1] = torch.clamp(boxes[:, :, :, 0], min=0, max=height)
 
-        boxes[:, :, 2] = torch.clamp(boxes[:, :, 2], max=width)
-        boxes[:, :, 3] = torch.clamp(boxes[:, :, 3], max=height)
+        # boxes[:, :, 4] = torch.clamp(boxes[:, :, 3], max=np.pi, min=-np.pi)
       
         return boxes
 

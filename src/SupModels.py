@@ -14,7 +14,7 @@ import math
 import logging as log
 from GANmodels import get_adv_model
 from utils import get_base_model
-from model_helpers import PyramidFeatures, Fusion, ClassificationModel, RegressionModel, ObjectDetectionHeads, DecoderNetwork
+from model_helpers import PyramidFeatures, Fusion, RegressionModel, ObjectDetectionHeads, DecoderNetwork
 from utils import dblock,dice_loss
 
 OUT_BLOCK4_DIMENSION_DICT = {"resnet18": 512, "resnet34":512, "resnet50":2048, "resnet101":2048,

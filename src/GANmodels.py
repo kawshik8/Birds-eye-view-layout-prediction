@@ -9,7 +9,7 @@ from torch.nn.modules.module import Module
 import math
 import logging as log
 from utils import get_base_model
-from model_helpers import PyramidFeatures, Fusion, ClassificationModel, RegressionModel, ObjectDetectionHeads, DecoderNetwork
+from model_helpers import PyramidFeatures, Fusion, RegressionModel, ObjectDetectionHeads, DecoderNetwork
 from losses import compute_ts_road_map, compute_ats_bounding_boxes
 from utils import block, dblock,dice_loss
 

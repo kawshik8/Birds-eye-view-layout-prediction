@@ -143,19 +143,70 @@ class LabeledDataset(torch.utils.data.Dataset):
         road_image = self.transform["road"](road_image.type(torch.FloatTensor))
 
 #         print(torch.as_tensor(corners).view(-1, 2, 4).transpose(1,2).flatten(1,2))
-        bounding_box = torch.as_tensor(corners).view(-1, 2, 4).transpose(1,2)#.flatten(1,2)
-        bounding_box = (bounding_box * 10) + 400
-
+        bounding_box = torch.as_tensor(corners).view(-1, 2, 4)#.transpose(1,2)#.flatten(1,2)
+        bounding_box[:,0] = (bounding_box[:,0] * 10) + 400
+        bounding_box[:,1] = (-bounding_box[:,1] * 10) + 400
+        bounding_box = (bounding_box * 256)/800
+        bounding_box = bounding_box.transpose(1,2)
         # print(bounding_box[:, :, 0].shape)
        
         bbox = torch.zeros(bounding_box.shape[0],4)
         # print(bbox.shape, bounding_box.shape)
-        bbox[:, 0] = bounding_box[:, :, 0].min(dim=1)[0]
-        bbox[:, 1] = bounding_box[:, :, 1].min(dim=1)[0]
-        bbox[:, 2] = bounding_box[:, :, 0].max(dim=1)[0]
-        bbox[:, 3] = bounding_box[:, :, 1].max(dim=1)[0]
 
-        bbox = (bbox * 256)/800
+        # bbox = (bbox * 256)/800
+
+        bbox_new = torch.zeros(bounding_box.shape[0], 5)
+        # print(bbox.shape, bounding_box.shape)
+        # bbox[:, 0] = bounding_box[:, :, 0].min(dim=1)[0]
+        # bbox[:, 1] = bounding_box[:, :, 1].min(dim=1)[0]
+        # bbox[:, 2] = bounding_box[:, :, 0].max(dim=1)[0]
+        # bbox[:, 3] = bounding_box[:, :, 1].max(dim=1)[0]
+
+        # Computre rotate angle from center point
+        for i, box in enumerate(bounding_box):
+            if box[0][0] <= box[2][0] and box[0][1] >= box[1][1]:
+                br = box[0]
+                bl = box[1]
+                fr = box[2]
+                fl = box[3]
+            else:
+                fl = box[0]
+                fr = box[1]
+                bl = box[2]
+                br = box[3]                
+           
+            centerpoint = (fl+br)/2
+            if fl[0] > fr[0]: # negative angle
+                theta = np.arctan((centerpoint[1]-fr[1])/(fr[0]-centerpoint[0]))
+                a = bl-centerpoint
+                b = fl-centerpoint
+                tempangle = np.arccos(torch.dot(a,b)/(torch.norm(a, 2)*torch.norm(b, 2)))
+                beta = (np.pi-tempangle)/2
+                gamma = -(theta-beta)
+                # print ("-----test----")
+                # print (torch.norm(a, 2))
+                # print (torch.norm(b, 2))
+                # print (theta)
+                # print (beta)
+                # print (gamma)
+            else: # positive angle
+                theta = np.arctan((centerpoint[1]-br[1])/(centerpoint[0]-br[0]))
+                a = fl-centerpoint
+                b = bl-centerpoint
+                tempangle = np.arccos(torch.dot(a,b)/(torch.norm(a, 2)*torch.norm(b, 2)))
+                beta = (np.pi-tempangle)/2
+                gamma = theta-beta
+                
+                #theta = np.arctan((fr[1] - br[1])/(fr[0]-br[0]))
+            bbox_new[i, 4] = gamma
+            rotation_matrix = np.array([[np.cos(gamma), -np.sin(gamma)], 
+                                        [np.sin(gamma), np.cos(gamma)]])
+            rotation_matrix = torch.from_numpy(rotation_matrix)
+            bbox_rotated = torch.matmul(rotation_matrix, torch.transpose(box, 0, 1))
+            bbox_new[i, 0] = bbox_rotated[0, 0]
+            bbox_new[i, 1] = bbox_rotated[1, 0]
+            bbox_new[i, 2] = bbox_rotated[0, 3]
+            bbox_new[i, 3] = bbox_rotated[1, 3]
 
         # print(bbox[0])
         # print(scene_id, sample_id, bounding_box.shape)
@@ -175,9 +226,9 @@ class LabeledDataset(torch.utils.data.Dataset):
             # print(bounding_box.shape,classes.shape)
             # print(classes)
             # exit(0)
-            return index,image_tensor, bbox, classes, action, ego, road_image
+            return index,image_tensor, bbox_new, classes, action, ego, road_image
 
         else:
-            return index,image_tensor, bbox, classes
+            return index,image_tensor, bbox_new, classes
 
         

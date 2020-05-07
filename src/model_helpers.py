@@ -11,17 +11,39 @@ from itertools import permutations,combinations
 from torch.nn.modules.module import Module
 from utils import Anchors, BBoxTransform, ClipBoxes, block, Resblock, dblock
 import math
+from losses import compute_ats_bounding_boxes
 
 
 class PyramidFeatures(nn.Module):
-    def __init__(self, C3_size, C4_size, C5_size, feature_size=256, fusion_strategy=None):
+    def __init__(self, args, C3_size, C4_size, C5_size, feature_size=256, fusion_strategy=None):
         super(PyramidFeatures, self).__init__()
+
+        self.fusion = args.view_fusion_strategy
+
+        self.conv_fuse = True
+        self.dense_before_fuse = False
+        self.dense_after_fuse = False
+
+        self.frefine_layers = 0
+        self.brefine_layers = 0
+
+        if self.conv_fuse or self.dense_fuse:
+            self.frefine_layers = 1
+            self.brefine_layers = 1
+
+        self.drefine_layers = 0
+        self.dcrefine_layers = 0
+
+            # print("dfuse",self.dense_fuse, "cfuse", self.conv_fuse, "dproj", self.dense_project)
+        # self.fuse1 = Fusion(args, C3_size, frefine_layers=self.frefine_layers, brefine_layers=self.brefine_layers, drefine_layers=self.drefine_layers, dense_fusion=self.dense_fuse, conv_fusion=self.conv_fuse, dcrefine_layers=self.dcrefine_layers)                           
+        # self.fuse2 = Fusion(args, C4_size, frefine_layers=self.frefine_layers, brefine_layers=self.brefine_layers, drefine_layers=self.drefine_layers, dense_fusion=self.dense_fuse, conv_fusion=self.conv_fuse, dcrefine_layers=self.dcrefine_layers)                           
+        # self.fuse3 = Fusion(args, C5_size, frefine_layers=self.frefine_layers, brefine_layers=self.brefine_layers, drefine_layers=self.drefine_layers, dense_fusion=self.dense_fuse, conv_fusion=self.conv_fuse, dcrefine_layers=self.dcrefine_layers)                           
 
         self.fusion_strategy = fusion_strategy
         if self.fusion_strategy:
-            self.fuse1 = block(6*C3_size,C3_size, kernel = 3, strides = 1, pad = 1)
-            self.fuse2 = block(6*C4_size,C4_size, kernel = 3, strides = 1, pad = 1)
-            self.fuse3 = block(6*C5_size,C5_size, kernel = 3, strides = 1, pad = 1)
+            self.fuse1 = nn.Conv2d(6*C3_size,C3_size, kernel_size = 1, stride = 1, padding = 0)
+            self.fuse2 = nn.Conv2d(6*C4_size,C4_size, kernel_size = 1, stride = 1, padding = 0)
+            self.fuse3 = nn.Conv2d(6*C5_size,C5_size, kernel_size = 1, stride = 1, padding = 0)
 
         # upsample C5 to get P5 from the FPN paper
         self.P5_1 = nn.Conv2d(C5_size, feature_size, kernel_size=1, stride=1, padding=0)
@@ -78,11 +100,12 @@ class PyramidFeatures(nn.Module):
         P7_x = self.P7_1(P6_x)
         P7_x = self.P7_2(P7_x)
 
+        # print("pyramid feature output shapes:", P3_x.shape, P4_x.shape, P5_x.shape, P6_x.shape, P7_x.shape)
         return [P3_x, P4_x, P5_x, P6_x, P7_x]
 
 
 class RegressionModel(nn.Module):
-    def __init__(self, num_features_in, fused, num_anchors=9, feature_size=256):
+    def __init__(self, num_features_in, fused, num_anchors=12*11, feature_size=256):
         super(RegressionModel, self).__init__()
 
         self.fused = not fused 
@@ -98,10 +121,10 @@ class RegressionModel(nn.Module):
         self.conv4 = nn.Conv2d(feature_size, feature_size, kernel_size=3, padding=1)
         self.act4 = nn.ReLU()
 
-        self.output = nn.Conv2d(feature_size, num_anchors * 4, kernel_size=3, padding=1)
+        self.output = nn.Conv2d(feature_size, num_anchors * 5, kernel_size=3, padding=1)
 
     def forward(self, x):
-        print("input shape",x.shape)
+        # print("input to regression model shape: ",x.shape)
         out = self.conv1(x)
         out = self.act1(out)
 
@@ -124,13 +147,13 @@ class RegressionModel(nn.Module):
         # out is B x C x W x H, with C = 4*num_anchors
         out = out.permute(0, 2, 3, 1)
 
-        print("final1", out.shape)
+        # print("final1", out.shape)
 
-        return out.contiguous().view(out.shape[0], -1, 4)
+        return out.contiguous().view(out.shape[0], -1, 5)
 
 
 class ClassificationModel(nn.Module):
-    def __init__(self, num_features_in, fused, num_anchors=9, num_classes=9, prior=0.01, feature_size=256):
+    def __init__(self, num_features_in, fused, num_anchors=12*11, num_classes=9, prior=0.01, feature_size=256):
         super(ClassificationModel, self).__init__()
 
         self.num_classes = num_classes
@@ -206,11 +229,12 @@ class ObjectDetectionHeads(nn.Module):
 
         # print(image_network)
         self.image_network = image_network
-        self.init_layers = self.image_network[0]
-        self.block1 = self.image_network[-4]
-        self.block2 = self.image_network[-3]
-        self.block3 = self.image_network[-2]
-        self.block4 = self.image_network[-1]
+        print(self.image_network)
+        self.init_layers = self.image_network[0:4]
+        self.block1 = self.image_network[4]
+        self.block2 = self.image_network[5]
+        self.block3 = self.image_network[6]
+        self.block4 = self.image_network[7]
         
         self.decoder_network = decoder_network
         
@@ -230,9 +254,9 @@ class ObjectDetectionHeads(nn.Module):
 
 
         if "encoder" in self.blobs_strategy and "fused" in self.blobs_strategy:
-            self.fpn = PyramidFeatures(fpn_sizes[0], fpn_sizes[1], fpn_sizes[2], fusion_strategy = "concat_fuse")
+            self.fpn = PyramidFeatures(args, fpn_sizes[0], fpn_sizes[1], fpn_sizes[2], fusion_strategy = "concat_fuse")
         else:
-            self.fpn = PyramidFeatures(fpn_sizes[0], fpn_sizes[1], fpn_sizes[2])
+            self.fpn = PyramidFeatures(args, fpn_sizes[0], fpn_sizes[1], fpn_sizes[2])
 
         self.dynamic_strategy = ("fused" not in self.blobs_strategy and "encoder" in self.blobs_strategy)
         # print("dynamic strat", self.dynamic_strategy)
@@ -313,65 +337,71 @@ class ObjectDetectionHeads(nn.Module):
         # print(features[0].shape,features[1].shape, features[2].shape)
         # print([(self.regressionModel(feature).shape,feature.shape) for feature in features])
         regression = torch.cat([self.regressionModel(feature) for feature in features], dim=1)
-        print("regression:", regression.shape)
+        # print("regression:", regression.shape)
 
         classification = torch.cat([self.classificationModel(feature) for feature in features], dim=1)
-        print("classification:",classification.shape)
+        # print("classification:",classification.shape)
 
         anchors = self.anchors(batch_input["image"].flatten(0,1))
-        print(anchors.shape)
+        # print(anchors.shape)
 
         # if self.training:
             # print(classification.shape, regression.shape, anchors.shape, annotations.shape)
 
-        batch_output["classification_loss"], batch_output["detection_loss"],batch_output["ts_boxes"] = self.focalLoss(classification.to(device), regression.to(device), anchors.to(device), annotations.to(device))
+        batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification.to(device), regression.to(device), anchors.to(device), annotations.to(device))
         batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
-
+        
         # batch_output["ts_obj_det"] = compute_ats_bounding_boxes()
             # print(batch_output["loss"].shape)
 
-        if self.training:
-            batch_output["classes"] = classification
-            batch_output["boxes"] = regression
-            batch_output["ts"] += batch_output["ts_boxes"]
+        # if self.training:
+        #     batch_output["classes"] = classification
+        #     batch_output["boxes"] = regression
+            
+        # else:
 
+        if self.dynamic_strategy:
+            anchors = anchors.unsqueeze(1).repeat(1,6,1,1).flatten(1,2)
+
+        print("anchors and regression shapes:", anchors.shape,regression.shape)
+        transformed_anchors = self.regressBoxes(anchors, regression)
+        # print(transformed_anchors.shape)
+        transformed_anchors = self.clipBoxes(transformed_anchors, batch_input["image"].flatten(0,1))
+
+        print(bbox.shape)
+        batch_output["ts_boxes"] = compute_ats_bounding_boxes(transformed_anchors, bbox)
+
+        if self.args.gen_road_map:
+            batch_output["ts"] += batch_output["ts_boxes"]
         else:
+            batch_output["ts"] = batch_output["ts_boxes"]
 
-            if self.dynamic_strategy:
-                anchors = anchors.unsqueeze(1).repeat(1,6,1,1).flatten(1,2)
+        scores = torch.max(classification, dim=2, keepdim=True)[0]
+        # # print()
+        # # print(scores.shape, (scores > 0.05).shape)
 
-            # print(anchors.shape,regression.shape)
-            transformed_anchors = self.regressBoxes(anchors, regression)
-            # print(transformed_anchors.shape)
-            transformed_anchors = self.clipBoxes(transformed_anchors, batch_input["image"].flatten(0,1))
+        scores_over_thresh = (scores > 0.05)[0, :, 0]
 
-            scores = torch.max(classification, dim=2, keepdim=True)[0]
-            # print()
-            # print(scores.shape, (scores > 0.05).shape)
+        if scores_over_thresh.sum() == 0:
+        # #     # batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
+        # #     # batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
+        # #     # print("no boxes to NMS, just return")
+            return batch_output
+        #     # no boxes to NMS, just return
 
-            scores_over_thresh = (scores > 0.05)[:, :, 0]
+        classification = classification[:, scores_over_thresh, :]
+        transformed_anchors = transformed_anchors[:, scores_over_thresh, :]
+        scores = scores[:, scores_over_thresh, :]
 
-            if scores_over_thresh.sum() == 0:
-                # batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
-                # batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
-                # print("no boxes to NMS, just return")
-                return batch_output
-                # no boxes to NMS, just return
+        anchors_nms_idx = nms(transformed_anchors[0,:,:], scores[0,:,0], 0.5)
 
-            classification = classification[:, scores_over_thresh, :]
-            transformed_anchors = transformed_anchors[:, scores_over_thresh, :]
-            scores = scores[:, scores_over_thresh, :]
+        # print(classification.shape, classification[0, anchors_nms_idx, :].shape)
+        nms_scores, nms_class = classification[0, anchors_nms_idx, :].max(dim=1)
 
-            anchors_nms_idx = nms(transformed_anchors[0,:,:], scores[0,:,0], 0.5)
-
-            # print(classification.shape, classification[0, anchors_nms_idx, :].shape)
-            nms_scores, nms_class = classification[0, anchors_nms_idx, :].max(dim=1)
-
-            # print(nms_scores.shape,nms_class.shape)
-
-            batch_output["classes"] = classification
-            batch_output["boxes"] = regression
-            batch_output["ts"] += batch_output["ts_boxes"]
+        # print(nms_scores.shape,nms_class.shape)
+        
+        batch_output["classes"] = nms_class
+        batch_output["boxes"] = transformed_anchors[0, anchors_nms_idx, :]
             
         return batch_output
 

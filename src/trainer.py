@@ -99,6 +99,7 @@ class Trainer(object):
                     batch_input[k] = batch_input[k].to(self.args.device)
                 self.model.zero_grad()
                 batch_output = self.model(batch_input, self.task)
+                # print(batch_output["loss"])
                 self.task.update_scorers(batch_input, batch_output)
                 batch_output["loss"].backward()
                 if self.args.clip != 0:
