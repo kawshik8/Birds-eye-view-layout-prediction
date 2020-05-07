@@ -255,7 +255,7 @@ class LabeledDataset(torch.utils.data.Dataset):
 
             # print("\nafter:",bbox_new[i])
             # if len(bbox_rotated[bbox_rotated<0])>0:
-            exit(0)
+            # exit(0)
 
         # print(bbox[0])
         # print(scene_id, sample_id, bounding_box.shape)
