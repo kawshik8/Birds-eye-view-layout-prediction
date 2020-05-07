@@ -105,7 +105,7 @@ class PyramidFeatures(nn.Module):
 
 
 class RegressionModel(nn.Module):
-    def __init__(self, num_features_in, fused, num_anchors=12*11, feature_size=256):
+    def __init__(self, num_features_in, fused, num_anchors=12*13, feature_size=256):
         super(RegressionModel, self).__init__()
 
         self.fused = not fused 
@@ -153,7 +153,7 @@ class RegressionModel(nn.Module):
 
 
 class ClassificationModel(nn.Module):
-    def __init__(self, num_features_in, fused, num_anchors=12*11, num_classes=9, prior=0.01, feature_size=256):
+    def __init__(self, num_features_in, fused, num_anchors=12*13, num_classes=9, prior=0.01, feature_size=256):
         super(ClassificationModel, self).__init__()
 
         self.num_classes = num_classes
@@ -377,12 +377,7 @@ class ObjectDetectionHeads(nn.Module):
         transformed_anchors = self.clipBoxes(transformed_anchors, batch_input["image"].flatten(0,1))
 
         # print(bbox.shape)
-        # batch_output["ts_boxes"] = compute_ats_bounding_boxes(transformed_anchors, bbox)
-
-        # if self.args.gen_road_map:
-        #     batch_output["ts"] += batch_output["ts_boxes"]
-        # else:
-        #     batch_output["ts"] = batch_output["ts_boxes"]
+        
 
         scores = torch.max(classification, dim=2, keepdim=True)[0]
         # # print()
@@ -410,6 +405,13 @@ class ObjectDetectionHeads(nn.Module):
         
         batch_output["classes"] = nms_class
         batch_output["boxes"] = transformed_anchors[0, anchors_nms_idx, :]
+
+        batch_output["ts_boxes"] = compute_ats_bounding_boxes(batch_output["boxes"], batch_input["bbox"])
+
+        if self.args.gen_road_map:
+            batch_output["ts"] += batch_output["ts_boxes"]
+        else:
+            batch_output["ts"] = batch_output["ts_boxes"]
             
         return batch_output
 

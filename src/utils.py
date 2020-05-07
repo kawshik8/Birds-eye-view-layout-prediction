@@ -159,8 +159,8 @@ class Anchors(nn.Module):
         if scales is None:
             self.scales = np.array([0.02, 0.05, 0.08])
         if angles is None:
-            self.angles = np.array([0, np.pi/12, np.pi/6, np.pi/4, np.pi/3,   np.pi*5/12, 
-                                     -np.pi/12, -np.pi/6, -np.pi/4, -np.pi/3, -np.pi*5/12])
+            self.angles = np.array([0, np.pi/12, np.pi/6, np.pi/4, np.pi/3,   np.pi*5/12, np.pi/2, 
+                                     -np.pi/12, -np.pi/6, -np.pi/4, -np.pi/3, -np.pi*5/12, -np.pi/2,])
 
     def forward(self, image):
         

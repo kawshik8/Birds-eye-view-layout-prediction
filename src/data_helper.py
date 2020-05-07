@@ -175,7 +175,7 @@ class LabeledDataset(torch.utils.data.Dataset):
                 bl = box[2]
                 br = box[3]                
            
-            print("before:",box)
+            # print("before:",box)
             centerpoint = (fl+br)/2
             if fl[0] > fr[0]: # negative angle
 
