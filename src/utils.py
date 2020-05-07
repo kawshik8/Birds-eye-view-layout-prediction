@@ -334,12 +334,25 @@ class BBoxTransform(nn.Module):
         pred_boxes_x3 = pred_ctr_x + 0.5 * pred_w
         pred_boxes_y3 = pred_ctr_y - 0.5 * pred_h
 
-        pred_boxes = torch.cat([pred_boxes_x1, pred_boxes_x2, pred_boxes_x3, pred_boxes_x4, pred_boxes_y1, pred_boxes_y2, pred_boxes_y3, pred_boxes_y4]).view(pred_boxes_y4.shape[0],pred_boxes_y4.shape[1],2,4).transpose(2,3)
-        rotation_matrix = torch.cat([torch.cos(-pred_alpha), -torch.sin(-pred_alpha), torch.sin(-pred_alpha), torch.cos(-pred_alpha)]).view(pred_boxes_y4.shape[0],pred_boxes_y4.shape[1],2,2)
-        # rotation_matrix = torch.from_numpy(rotation_matrix)
-        bbox_rotated = torch.matmul(rotation_matrix, torch.transpose(pred_boxes, 2, 3))
+        pred_boxes = torch.cat([pred_boxes_x1, pred_boxes_x2, pred_boxes_x3, pred_boxes_x4, pred_boxes_y1, pred_boxes_y2, pred_boxes_y3, pred_boxes_y4, torch.ones(pred_boxes_y4.shape), torch.ones(pred_boxes_y4.shape), torch.ones(pred_boxes_y4.shape), torch.ones(pred_boxes_y4.shape)]).view(pred_boxes_y4.shape[0],pred_boxes_y4.shape[1],3,4)#.transpose(2,3)
+
+        pred_ctr_x = pred_ctr_x.unsqueeze(-1)
+        pred_ctr_y = pred_ctr_y.unsqueeze(-1)
+        pred_alpha = pred_alpha.unsqueeze(-1)
+        print(pred_ctr_x.shape)
+        translation_matrix = torch.cat([torch.ones(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), pred_ctr_x, torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape), pred_ctr_y, torch.zeros(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape)],dim=-1).view(pred_ctr_x.shape[0],pred_ctr_x.shape[1],3,3)
+        reverse_translation_matrix = torch.cat([torch.ones(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), -pred_ctr_x, torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape), -pred_ctr_y, torch.zeros(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape)],dim=-1).view(pred_ctr_x.shape[0],pred_ctr_x.shape[1],3,3)
+        rotation_matrix = torch.cat([torch.cos(pred_alpha), -torch.sin(pred_alpha), torch.zeros(pred_alpha.shape), torch.sin(pred_alpha), torch.cos(pred_alpha), torch.zeros(pred_alpha.shape), torch.zeros(pred_alpha.shape),torch.zeros(pred_alpha.shape),torch.ones(pred_alpha.shape)],dim=-1).view(pred_alpha.shape[0],pred_alpha.shape[1],3,3)
+        # print(translation_matrix,reverse_translation_matrix,rotation_matrix)
+        # print(box.shape)
+        # box = torch.cat([pred_boxes,torch.ones(pred_boxes.shape[0], pred_boxes.shape[1], pred_boxes.shape[-1]).type(torch.DoubleTensor).unsqueeze(2)],dim=2)
+        # print(box)
+        bbox_rotated = torch.matmul(translation_matrix, torch.matmul(rotation_matrix, torch.matmul(reverse_translation_matrix,pred_boxes)))[:,:,:2]
 
         pred_boxes = bbox_rotated.transpose(2,3)
+
+        print("fpred_boxes in get bbox_transform", pred_boxes.shape)
+
 
         # pred_boxes = torch.stack([pred_boxes_x1, pred_boxes_y1, pred_boxes_x2, pred_boxes_y2], dim=2)
 
