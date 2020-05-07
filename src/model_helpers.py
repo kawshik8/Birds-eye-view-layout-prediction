@@ -229,7 +229,7 @@ class ObjectDetectionHeads(nn.Module):
 
         # print(image_network)
         self.image_network = image_network
-        print(self.image_network)
+        # print(self.image_network)
         self.init_layers = self.image_network[0:4]
         self.block1 = self.image_network[4]
         self.block2 = self.image_network[5]
@@ -371,18 +371,18 @@ class ObjectDetectionHeads(nn.Module):
         if self.dynamic_strategy:
             anchors = anchors.unsqueeze(1).repeat(1,6,1,1).flatten(1,2)
 
-        print("anchors and regression shapes:", anchors.shape,regression.shape)
+        # print("anchors and regression shapes:", anchors.shape,regression.shape)
         transformed_anchors = self.regressBoxes(anchors, regression)
         # print(transformed_anchors.shape)
         transformed_anchors = self.clipBoxes(transformed_anchors, batch_input["image"].flatten(0,1))
 
-        print(bbox.shape)
-        batch_output["ts_boxes"] = compute_ats_bounding_boxes(transformed_anchors, bbox)
+        # print(bbox.shape)
+        # batch_output["ts_boxes"] = compute_ats_bounding_boxes(transformed_anchors, bbox)
 
-        if self.args.gen_road_map:
-            batch_output["ts"] += batch_output["ts_boxes"]
-        else:
-            batch_output["ts"] = batch_output["ts_boxes"]
+        # if self.args.gen_road_map:
+        #     batch_output["ts"] += batch_output["ts_boxes"]
+        # else:
+        #     batch_output["ts"] = batch_output["ts_boxes"]
 
         scores = torch.max(classification, dim=2, keepdim=True)[0]
         # # print()

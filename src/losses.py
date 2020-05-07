@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from shapely.geometry import Polygon
 
+from pdb import set_trace as bp
 
 def compute_iou(box1, box2):
     a = Polygon(torch.t(box1)).convex_hull
@@ -12,7 +13,7 @@ def compute_iou(box1, box2):
     return a.intersection(b).area / a.union(b).area
 
 def get_orig_dim(boxes,gt=False):
-    print(boxes.shape)
+    # print(boxes.shape)
 
     x1 = boxes[:,:,0].unsqueeze(-1)
     y1 = boxes[:,:,1].unsqueeze(-1)
@@ -44,25 +45,46 @@ def get_orig_dim(boxes,gt=False):
     cy = cy.unsqueeze(-1)
     gamma = gamma.unsqueeze(-1)
 
-    translation_matrix = torch.cat([torch.ones(cx.shape),torch.zeros(cx.shape),cx, torch.zeros(cx.shape),torch.ones(cx.shape),cy, torch.zeros(cx.shape),torch.zeros(cx.shape),torch.ones(cx.shape)],dim=-1).view(cx.shape[0],cx.shape[1],3,3)
-    reverse_translation_matrix = torch.cat([torch.ones(cx.shape), torch.zeros(cx.shape), -cx, torch.zeros(cx.shape), torch.ones(cx.shape), -cy, torch.zeros(cx.shape), torch.zeros(cx.shape), torch.ones(cx.shape)], dim=-1).view(cx.shape[0],cx.shape[1],3,3)
-    rotation_matrix = torch.cat([torch.cos(gamma), -torch.sin(gamma), torch.zeros(gamma.shape), torch.sin(gamma), torch.cos(gamma), torch.zeros(gamma.shape),torch.zeros(gamma.shape),torch.zeros(gamma.shape),torch.ones(gamma.shape)],dim=-1).view(gamma.shape[0],gamma.shape[1],3,3)
+    # bp()
+
+    if torch.cuda.is_available():
+        translation_matrix = torch.cat([torch.ones(cx.shape).cuda(), torch.zeros(cx.shape).cuda(), cx, 
+                                        torch.zeros(cx.shape).cuda(),torch.ones(cx.shape).cuda(),  cy, 
+                                        torch.zeros(cx.shape).cuda(),torch.zeros(cx.shape).cuda(),torch.ones(cx.shape).cuda()],dim=-1).view(cx.shape[0],cx.shape[1],3,3)
+        reverse_translation_matrix = torch.cat([torch.ones(cx.shape).cuda(), torch.zeros(cx.shape).cuda(), -cx, 
+                                                torch.zeros(cx.shape).cuda(), torch.ones(cx.shape).cuda(), -cy, 
+                                                torch.zeros(cx.shape).cuda(), torch.zeros(cx.shape).cuda(), torch.ones(cx.shape).cuda()], dim=-1).view(cx.shape[0],cx.shape[1],3,3)
+        rotation_matrix = torch.cat([torch.cos(gamma), -torch.sin(gamma), torch.zeros(gamma.shape).cuda(), 
+                                     torch.sin(gamma),  torch.cos(gamma), torch.zeros(gamma.shape).cuda(),
+                                     torch.zeros(gamma.shape).cuda(),torch.zeros(gamma.shape).cuda(),torch.ones(gamma.shape).cuda()],dim=-1).view(gamma.shape[0],gamma.shape[1],3,3)
+    else:
+        translation_matrix = torch.cat([torch.ones(cx.shape), torch.zeros(cx.shape), cx, 
+                                        torch.zeros(cx.shape),torch.ones(cx.shape),  cy, 
+                                        torch.zeros(cx.shape),torch.zeros(cx.shape),torch.ones(cx.shape)],dim=-1).view(cx.shape[0],cx.shape[1],3,3)
+        reverse_translation_matrix = torch.cat([torch.ones(cx.shape), torch.zeros(cx.shape), -cx, 
+                                                torch.zeros(cx.shape), torch.ones(cx.shape), -cy, 
+                                                torch.zeros(cx.shape), torch.zeros(cx.shape), torch.ones(cx.shape)], dim=-1).view(cx.shape[0],cx.shape[1],3,3)
+        rotation_matrix = torch.cat([torch.cos(gamma), -torch.sin(gamma), torch.zeros(gamma.shape), 
+                                     torch.sin(gamma),  torch.cos(gamma), torch.zeros(gamma.shape),
+                                     torch.zeros(gamma.shape),torch.zeros(gamma.shape),torch.ones(gamma.shape)],dim=-1).view(gamma.shape[0],gamma.shape[1],3,3)
     # print(translation_matrix,reverse_translation_matrix,rotation_matrix)
     # print(box.shape)
     #     # print(box)
+    if torch.cuda.is_available():
+        final_bbox = final_bbox.cuda()
     bbox_rotated = torch.matmul(translation_matrix, torch.matmul(rotation_matrix, torch.matmul(reverse_translation_matrix, final_bbox)))[:,:,:2]
     # rotation_matrix = torch.from_numpy(rotation_matrix)
     final_bbox = bbox_rotated.transpose(2,3)
-    print("final_bbox in get orig dim", final_bbox.shape)
+    # print("final_bbox in get orig dim", final_bbox.shape)
     
     return final_bbox
 
 def compute_ats_bounding_boxes(pred, gt):
 
-    print(pred.shape, gt.shape)
+    # print(pred.shape, gt.shape)
     pred = pred.transpose(2,3)#get_orig_dim(pred)
     gt = get_orig_dim(gt).transpose(2,3)#get_orig_dim(gt)
-    print("boxes1 and boxes2:", pred.shape, gt.shape)
+    # print("boxes1 and boxes2:", pred.shape, gt.shape)
 
     ts_scores = torch.zeros(pred.shape[0])
 
@@ -96,6 +118,7 @@ def compute_ats_bounding_boxes(pred, gt):
             for j in range(num_boxes2):
                 if condition_matrix[i][j]:
                     # print("goes inside")
+                    # bp()
                     iou_matrix[i][j] = compute_iou(boxes1[i], boxes2[j])
 
         iou_max = iou_matrix.max(dim=0)[0]
@@ -113,7 +136,7 @@ def compute_ats_bounding_boxes(pred, gt):
 
         average_threat_score = total_threat_score / total_weight
         # print(average_threat_score.shape)
-        print(average_threat_score)
+        # print(average_threat_score)
         # print(i)
         ts_scores[batch] = average_threat_score
     # print(average_threat_score)

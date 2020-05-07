@@ -338,4 +338,4 @@ def process_args(args):
 
     args.finetune_tasks = list(filter(lambda task: task != "none", args.finetune_tasks.split(",")))
     args.exp_dir = os.path.join(args.results_dir, args.exp_name)
-    print(args)
+    # print(args)

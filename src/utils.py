@@ -6,6 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models.resnet as resnet
 
+from pdb import set_trace as bp
+
 EPSILON = 1e-8
 
 def dice_loss(input, target):
@@ -305,7 +307,8 @@ class BBoxTransform(nn.Module):
             self.std = std
 
     def forward(self, boxes, deltas):
-        print("boxes and deltas", boxes.shape, deltas.shape)
+        # print(boxes.shape, deltas.shape)
+
 
         widths  = boxes[:, :, 2] - boxes[:, :, 0]
         heights = boxes[:, :, 3] - boxes[:, :, 1]
@@ -333,16 +336,44 @@ class BBoxTransform(nn.Module):
         pred_boxes_y2 = pred_ctr_y + 0.5 * pred_h
         pred_boxes_x3 = pred_ctr_x + 0.5 * pred_w
         pred_boxes_y3 = pred_ctr_y - 0.5 * pred_h
+        # bp()
 
-        pred_boxes = torch.cat([pred_boxes_x1, pred_boxes_x2, pred_boxes_x3, pred_boxes_x4, pred_boxes_y1, pred_boxes_y2, pred_boxes_y3, pred_boxes_y4, torch.ones(pred_boxes_y4.shape), torch.ones(pred_boxes_y4.shape), torch.ones(pred_boxes_y4.shape), torch.ones(pred_boxes_y4.shape)]).view(pred_boxes_y4.shape[0],pred_boxes_y4.shape[1],3,4)#.transpose(2,3)
+        if torch.cuda.is_available():
+            pred_boxes = torch.cat([pred_boxes_x1, pred_boxes_x2, pred_boxes_x3, pred_boxes_x4, 
+                                    pred_boxes_y1, pred_boxes_y2, pred_boxes_y3, pred_boxes_y4, 
+                                    torch.ones(pred_boxes_y4.shape).cuda(), torch.ones(pred_boxes_y4.shape).cuda(), torch.ones(pred_boxes_y4.shape).cuda(), 
+                                    torch.ones(pred_boxes_y4.shape).cuda()]).view(pred_boxes_y4.shape[0],pred_boxes_y4.shape[1],3,4)#.transpose(2,3)
+        else:
+            pred_boxes = torch.cat([pred_boxes_x1, pred_boxes_x2, pred_boxes_x3, pred_boxes_x4, 
+                                    pred_boxes_y1, pred_boxes_y2, pred_boxes_y3, pred_boxes_y4, 
+                                    torch.ones(pred_boxes_y4.shape), torch.ones(pred_boxes_y4.shape), torch.ones(pred_boxes_y4.shape), 
+                                    torch.ones(pred_boxes_y4.shape)]).view(pred_boxes_y4.shape[0],pred_boxes_y4.shape[1],3,4)#.transpose(2,3)
 
         pred_ctr_x = pred_ctr_x.unsqueeze(-1)
         pred_ctr_y = pred_ctr_y.unsqueeze(-1)
         pred_alpha = pred_alpha.unsqueeze(-1)
         # print(pred_ctr_x.shape)
-        translation_matrix = torch.cat([torch.ones(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), pred_ctr_x, torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape), pred_ctr_y, torch.zeros(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape)],dim=-1).view(pred_ctr_x.shape[0],pred_ctr_x.shape[1],3,3)
-        reverse_translation_matrix = torch.cat([torch.ones(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), -pred_ctr_x, torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape), -pred_ctr_y, torch.zeros(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape)],dim=-1).view(pred_ctr_x.shape[0],pred_ctr_x.shape[1],3,3)
-        rotation_matrix = torch.cat([torch.cos(pred_alpha), -torch.sin(pred_alpha), torch.zeros(pred_alpha.shape), torch.sin(pred_alpha), torch.cos(pred_alpha), torch.zeros(pred_alpha.shape), torch.zeros(pred_alpha.shape),torch.zeros(pred_alpha.shape),torch.ones(pred_alpha.shape)],dim=-1).view(pred_alpha.shape[0],pred_alpha.shape[1],3,3)
+
+        if torch.cuda.is_available():
+            translation_matrix = torch.cat([torch.ones(pred_ctr_x.shape).cuda(), torch.zeros(pred_ctr_x.shape).cuda(), pred_ctr_x, 
+                                            torch.zeros(pred_ctr_x.shape).cuda(), torch.ones(pred_ctr_x.shape).cuda(), pred_ctr_y, 
+                                            torch.zeros(pred_ctr_x.shape).cuda(), torch.zeros(pred_ctr_x.shape).cuda(), torch.ones(pred_ctr_x.shape).cuda()],dim=-1).view(pred_ctr_x.shape[0],pred_ctr_x.shape[1],3,3)
+            reverse_translation_matrix = torch.cat([torch.ones(pred_ctr_x.shape).cuda(), torch.zeros(pred_ctr_x.shape).cuda(), -pred_ctr_x, 
+                                        torch.zeros(pred_ctr_x.shape).cuda(), torch.ones(pred_ctr_x.shape).cuda(), -pred_ctr_y, 
+                                        torch.zeros(pred_ctr_x.shape).cuda(), torch.zeros(pred_ctr_x.shape).cuda(), torch.ones(pred_ctr_x.shape).cuda()],dim=-1).view(pred_ctr_x.shape[0],pred_ctr_x.shape[1],3,3)
+            rotation_matrix = torch.cat([torch.cos(pred_alpha), -torch.sin(pred_alpha), torch.zeros(pred_alpha.shape).cuda(), 
+                                         torch.sin(pred_alpha), torch.cos(pred_alpha), torch.zeros(pred_alpha.shape).cuda(), 
+                                         torch.zeros(pred_alpha.shape).cuda(), torch.zeros(pred_alpha.shape).cuda(), torch.ones(pred_alpha.shape).cuda()],dim=-1).view(pred_alpha.shape[0],pred_alpha.shape[1],3,3)
+        else:
+            translation_matrix = torch.cat([torch.ones(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), pred_ctr_x, 
+                                            torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape), pred_ctr_y, 
+                                            torch.zeros(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape)],dim=-1).view(pred_ctr_x.shape[0],pred_ctr_x.shape[1],3,3)
+            reverse_translation_matrix = torch.cat([torch.ones(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), -pred_ctr_x, 
+                                        torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape), -pred_ctr_y, 
+                                        torch.zeros(pred_ctr_x.shape), torch.zeros(pred_ctr_x.shape), torch.ones(pred_ctr_x.shape)],dim=-1).view(pred_ctr_x.shape[0],pred_ctr_x.shape[1],3,3)
+            rotation_matrix = torch.cat([torch.cos(pred_alpha), -torch.sin(pred_alpha), torch.zeros(pred_alpha.shape), 
+                                         torch.sin(pred_alpha), torch.cos(pred_alpha), torch.zeros(pred_alpha.shape), 
+                                         torch.zeros(pred_alpha.shape),torch.zeros(pred_alpha.shape),torch.ones(pred_alpha.shape)],dim=-1).view(pred_alpha.shape[0],pred_alpha.shape[1],3,3)
         # print(translation_matrix,reverse_translation_matrix,rotation_matrix)
         # print(box.shape)
         # box = torch.cat([pred_boxes,torch.ones(pred_boxes.shape[0], pred_boxes.shape[1], pred_boxes.shape[-1]).type(torch.DoubleTensor).unsqueeze(2)],dim=2)
@@ -351,7 +382,7 @@ class BBoxTransform(nn.Module):
 
         pred_boxes = bbox_rotated.transpose(2,3)
 
-        print("fpred_boxes in get bbox_transform", pred_boxes.shape)
+        # print("fpred_boxes in get bbox_transform", pred_boxes.shape)
 
 
         # pred_boxes = torch.stack([pred_boxes_x1, pred_boxes_y1, pred_boxes_x2, pred_boxes_y2], dim=2)
