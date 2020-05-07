@@ -175,29 +175,50 @@ class LabeledDataset(torch.utils.data.Dataset):
                 bl = box[2]
                 br = box[3]                
            
-            # print("before:",box)
+            print("before:",box)
             centerpoint = (fl+br)/2
             if fl[0] > fr[0]: # negative angle
-                theta = torch.atan((centerpoint[1]-fr[1])/(fr[0]-centerpoint[0]))
+
+                if fr[0] != centerpoint[0]:
+                    theta = torch.atan((fr[1] - centerpoint[1])/abs(fr[0]-centerpoint[0]))
+                else:
+                    theta = (np.pi/2)
+
                 a = bl-centerpoint
                 b = fl-centerpoint
                 tempangle = torch.acos(torch.dot(a,b)/(torch.norm(a, 2)*torch.norm(b, 2)))
                 beta = (np.pi-tempangle)/2
-                gamma = -(theta-beta)
+
+                if fr[0] > centerpoint[0]:
+                    gamma = -(theta-beta)
+                else:
+                    gamma = -(np.pi - theta - beta)
+
                 # print ("-----test----")
                 # print (torch.norm(a, 2))
                 # print (torch.norm(b, 2))
                 # print (theta)
                 # print (beta)
                 # print (gamma)
-            else: # positive angle
-                theta = torch.atan((centerpoint[1]-br[1])/(centerpoint[0]-br[0]))
+            elif fl[0] < fr[0]: # positive angle
+
+                if centerpoint[0] != br[0]:
+                    theta = torch.atan((br[1] - centerpoint[1])/abs(centerpoint[0]-br[0]))
+                else:
+                    theta = np.pi/2
+
                 a = fl-centerpoint
                 b = bl-centerpoint
                 tempangle = torch.acos(torch.dot(a,b)/(torch.norm(a, 2)*torch.norm(b, 2)))
                 beta = (np.pi-tempangle)/2
-                gamma = (theta-beta)
 
+                if br[0] > centerpoint[0]:
+                    gamma = (theta-beta)
+                else:
+                    gamma = (np.pi - theta - beta)
+
+            else:
+                gamma = 0
             # print((gamma*180)/np.pi)
                 
                 #theta = np.arctan((fr[1] - br[1])/(fr[0]-br[0]))
@@ -234,7 +255,7 @@ class LabeledDataset(torch.utils.data.Dataset):
 
             # print("\nafter:",bbox_new[i])
             # if len(bbox_rotated[bbox_rotated<0])>0:
-            #     exit(0)
+            exit(0)
 
         # print(bbox[0])
         # print(scene_id, sample_id, bounding_box.shape)
