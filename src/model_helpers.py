@@ -362,36 +362,62 @@ class ObjectDetectionHeads(nn.Module):
         # batch_output["ts_obj_det"] = compute_ats_bounding_boxes()
             # print(batch_output["loss"].shape)
 
-        # if self.training:
-        #     batch_output["classes"] = classification
-        #     batch_output["boxes"] = regression
-            
-        # else:
-
-        if self.dynamic_strategy:
-            anchors = anchors.unsqueeze(1).repeat(1,6,1,1).flatten(1,2)
-
-        # print("anchors and regression shapes:", anchors.shape,regression.shape)
-        transformed_anchors = self.regressBoxes(anchors, regression)
-        # print(transformed_anchors.shape)
-        transformed_anchors = self.clipBoxes(transformed_anchors, batch_input["image"].flatten(0,1))
-
-        # print(bbox.shape)
-        
-
-        scores, classes = classification.max(dim=2, keepdim=True)#torch.max(classification, dim=2, keepdim=True)
-        # # print()
-        # print(scores.shape, (scores > 0.05).shape)
-
-        scores_over_thresh = (scores > 0.05)[:, :, 0]
-
-        if scores_over_thresh.sum() == 0:
-        # #     # batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
-        # #     # batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
-        # #     # print("no boxes to NMS, just return")
+        # print("is train stage?", self.training)
+        if self.training:
             # batch_output["classes"] = classification
-            batch_output["boxes"] = transformed_anchors
-            batch_output["classes"] = classes
+            # batch_output["boxes"] = regression
+            batch_output["ts_boxes"] = torch.tensor(0)
+            batch_output["ts"] = torch.tensor(0)
+        else:
+
+            if self.dynamic_strategy:
+                anchors = anchors.unsqueeze(1).repeat(1,6,1,1).flatten(1,2)
+
+            # print("anchors and regression shapes:", anchors.shape,regression.shape)
+            transformed_anchors = self.regressBoxes(anchors, regression)
+            # print(transformed_anchors.shape)
+            transformed_anchors = self.clipBoxes(transformed_anchors, batch_input["image"].flatten(0,1))
+
+            # print(bbox.shape)
+            
+
+            scores, classes = classification.max(dim=2, keepdim=True)#torch.max(classification, dim=2, keepdim=True)
+            # # print()
+            # print(scores.shape, (scores > 0.05).shape)
+
+            scores_over_thresh = (scores > 0.05)[:, :, 0]
+
+            if scores_over_thresh.sum() == 0:
+            # #     # batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
+            # #     # batch_output["loss"] += batch_output["classification_loss"][0] + batch_output["detection_loss"][0]
+            # #     # print("no boxes to NMS, just return")
+                # batch_output["classes"] = classification
+                batch_output["boxes"] = transformed_anchors
+                batch_output["classes"] = classes
+
+                batch_output["ts_boxes"] = compute_ats_bounding_boxes(batch_output["boxes"], batch_input["bbox"])
+
+                if self.args.gen_road_map:
+                    batch_output["ts"] += batch_output["ts_boxes"]
+                else:
+                    batch_output["ts"] = batch_output["ts_boxes"]
+
+                return batch_output
+            #     # no boxes to NMS, just return
+
+            classification = classification[:, scores_over_thresh, :]
+            transformed_anchors = transformed_anchors[:, scores_over_thresh, :]
+            scores = scores[:, scores_over_thresh, :]
+
+            anchors_nms_idx = nms(transformed_anchors[0,:,:], scores[:,:,0], 0.5)
+
+            # print(classification.shape, classification[0, anchors_nms_idx, :].shape)
+            nms_scores, nms_class = classification[:, anchors_nms_idx, :].max(dim=1)
+
+            # print(nms_scores.shape,nms_class.shape)
+            
+            batch_output["classes"] = nms_class
+            batch_output["boxes"] = transformed_anchors[0, anchors_nms_idx, :]
 
             batch_output["ts_boxes"] = compute_ats_bounding_boxes(batch_output["boxes"], batch_input["bbox"])
 
@@ -399,31 +425,7 @@ class ObjectDetectionHeads(nn.Module):
                 batch_output["ts"] += batch_output["ts_boxes"]
             else:
                 batch_output["ts"] = batch_output["ts_boxes"]
-
-            return batch_output
-        #     # no boxes to NMS, just return
-
-        classification = classification[:, scores_over_thresh, :]
-        transformed_anchors = transformed_anchors[:, scores_over_thresh, :]
-        scores = scores[:, scores_over_thresh, :]
-
-        anchors_nms_idx = nms(transformed_anchors[0,:,:], scores[:,:,0], 0.5)
-
-        # print(classification.shape, classification[0, anchors_nms_idx, :].shape)
-        nms_scores, nms_class = classification[:, anchors_nms_idx, :].max(dim=1)
-
-        # print(nms_scores.shape,nms_class.shape)
-        
-        batch_output["classes"] = nms_class
-        batch_output["boxes"] = transformed_anchors[0, anchors_nms_idx, :]
-
-        batch_output["ts_boxes"] = compute_ats_bounding_boxes(batch_output["boxes"], batch_input["bbox"])
-
-        if self.args.gen_road_map:
-            batch_output["ts"] += batch_output["ts_boxes"]
-        else:
-            batch_output["ts"] = batch_output["ts_boxes"]
-            
+                
         return batch_output
 
 class Fusion(nn.Module):
