@@ -381,7 +381,7 @@ class ObjectDetectionHeads(nn.Module):
 
         scores, classes = classification.max(dim=2, keepdim=True)#torch.max(classification, dim=2, keepdim=True)
         # # print()
-        print(scores.shape, (scores > 0.05).shape)
+        # print(scores.shape, (scores > 0.05).shape)
 
         scores_over_thresh = (scores > 0.05)[:, :, 0]
 
