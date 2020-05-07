@@ -396,10 +396,10 @@ class Task(object):
         count = len(batch_input["idx"])
         self.scorers["count"] += count
         for key in self.scorers.keys():
-            if key != "count" and key != "ts" and key != "ts_boxes":
-                # if key == "ts":
-                    # print(batch_output[key])
-                    # print(self.scorers[key])
+            if key != "count": #and key != "ts" and key != "ts_boxes":
+                if key == "ts":
+                    print(batch_output[key])
+                    print(self.scorers[key])
                 self.scorers[key].append(batch_output[key].cpu().sum() * count)
 
     def report_scorers(self, reset=False):
