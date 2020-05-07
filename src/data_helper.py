@@ -175,12 +175,13 @@ class LabeledDataset(torch.utils.data.Dataset):
                 bl = box[2]
                 br = box[3]                
            
+            print("before:",box)
             centerpoint = (fl+br)/2
             if fl[0] > fr[0]: # negative angle
-                theta = np.arctan((centerpoint[1]-fr[1])/(fr[0]-centerpoint[0]))
+                theta = torch.atan((centerpoint[1]-fr[1])/(fr[0]-centerpoint[0]))
                 a = bl-centerpoint
                 b = fl-centerpoint
-                tempangle = np.arccos(torch.dot(a,b)/(torch.norm(a, 2)*torch.norm(b, 2)))
+                tempangle = torch.acos(torch.dot(a,b)/(torch.norm(a, 2)*torch.norm(b, 2)))
                 beta = (np.pi-tempangle)/2
                 gamma = -(theta-beta)
                 # print ("-----test----")
@@ -190,23 +191,50 @@ class LabeledDataset(torch.utils.data.Dataset):
                 # print (beta)
                 # print (gamma)
             else: # positive angle
-                theta = np.arctan((centerpoint[1]-br[1])/(centerpoint[0]-br[0]))
+                theta = torch.atan((centerpoint[1]-br[1])/(centerpoint[0]-br[0]))
                 a = fl-centerpoint
                 b = bl-centerpoint
-                tempangle = np.arccos(torch.dot(a,b)/(torch.norm(a, 2)*torch.norm(b, 2)))
+                tempangle = torch.acos(torch.dot(a,b)/(torch.norm(a, 2)*torch.norm(b, 2)))
                 beta = (np.pi-tempangle)/2
-                gamma = theta-beta
+                gamma = (theta-beta)
+
+            print((gamma*180)/np.pi)
                 
                 #theta = np.arctan((fr[1] - br[1])/(fr[0]-br[0]))
             bbox_new[i, 4] = gamma
-            rotation_matrix = np.array([[np.cos(gamma), -np.sin(gamma)], 
-                                        [np.sin(gamma), np.cos(gamma)]])
-            rotation_matrix = torch.from_numpy(rotation_matrix)
-            bbox_rotated = torch.matmul(rotation_matrix, torch.transpose(box, 0, 1))
-            bbox_new[i, 0] = bbox_rotated[0, 0]
-            bbox_new[i, 1] = bbox_rotated[1, 0]
-            bbox_new[i, 2] = bbox_rotated[0, 3]
-            bbox_new[i, 3] = bbox_rotated[1, 3]
+            
+            translation_matrix = torch.tensor([[1,0,centerpoint[0]],[0,1,centerpoint[1]],[0,0,1]])
+            reverse_translation_matrix = torch.tensor([[1,0,-centerpoint[0]],[0,1,-centerpoint[1]],[0,0,1]])
+            rotation_matrix = torch.tensor([[torch.cos(-gamma.unsqueeze(0)), -torch.sin(-gamma.unsqueeze(0)), 0],[torch.sin(-gamma.unsqueeze(0)), torch.cos(-gamma.unsqueeze(0)), 0],[0,0,1]])
+            # print(translation_matrix,reverse_translation_matrix,rotation_matrix)
+            # print(box.shape)
+            box = torch.cat([box.transpose(0,1),torch.ones(box.shape[0]).type(torch.DoubleTensor).unsqueeze(0)],dim=0)
+            print(box)
+            bbox_rotated = torch.matmul(translation_matrix, torch.matmul(rotation_matrix, torch.matmul(reverse_translation_matrix,box)))[:2]
+            print(bbox_rotated)
+            # print("\nrotation matrix shape:",rotation_matrix.shape)
+            # rotation_matrix = torch.from_numpy(rotation_matrix)
+            # bbox_rotated = torch.matmul(rotation_matrix, torch.transpose(box, 0, 1))
+            print("\nbbox_rotated shape:",bbox_rotated.shape)
+            print("\nrotated_bbox:", bbox_rotated)
+            print("\nbbox new shape:",bbox_new.shape)
+            if box[0][0] <= box[2][0] and box[0][1] >= box[1][1]:
+
+                bbox_new[i, 0] = bbox_rotated[0, 1]
+                bbox_new[i, 1] = bbox_rotated[1, 1]
+                bbox_new[i, 2] = bbox_rotated[0, 2]
+                bbox_new[i, 3] = bbox_rotated[1, 2]
+            
+            else:
+
+                bbox_new[i, 0] = bbox_rotated[0, 0]
+                bbox_new[i, 1] = bbox_rotated[1, 0]
+                bbox_new[i, 2] = bbox_rotated[0, 3]
+                bbox_new[i, 3] = bbox_rotated[1, 3]
+
+            print("\nafter:",bbox_new[i])
+            if len(bbox_rotated[bbox_rotated<0])>0:
+                exit(0)
 
         # print(bbox[0])
         # print(scene_id, sample_id, bounding_box.shape)

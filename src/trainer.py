@@ -47,7 +47,7 @@ class Trainer(object):
         self.task.reset_scorers()
         with torch.no_grad():
             for batch, inputs in enumerate(self.task.data_iterators[split]):
-            #   if batch < 5:
+              if batch < 5:
                 if self.stage == "pretrain":
                     index, image, query = inputs
                     batch_input = {"image":image,"query":query,"idx":index}

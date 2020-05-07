@@ -48,6 +48,14 @@ class Discriminator(nn.Module):
             
         self.network = nn.Sequential(*network_layers)
 
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_() 
+
         self.disc_finetune_params += list(self.network.parameters())
 
         if "patch" not in self.type:
@@ -260,6 +268,14 @@ class ViewGANModels(GAN):
             self.criterion = torch.nn.MSELoss()
         elif self.loss_type == "bce":
             self.criterion = torch.nn.BCELoss()
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_() 
         
         # if "retinanet" in self.obj_detection_head and self.detect_objects:
         #     if "decoder" in self.blobs_strategy:
@@ -270,6 +286,10 @@ class ViewGANModels(GAN):
         self.dropout = torch.nn.Dropout(p=0.5, inplace=False)
 
         self.sigmoid = nn.Sigmoid()
+
+
+       
+
         self.shared_params = list(self.image_network.parameters())
 
         if args.imagessl_load_ckpt is not "none":

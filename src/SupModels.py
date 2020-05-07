@@ -219,7 +219,15 @@ class ViewGenModels(ViewModel):
                 self.criterion = torch.nn.BCEWithLogitsLoss()
             
 
-        self.avg_pool = nn.AdaptiveAvgPool2d((1,1))     
+        self.avg_pool = nn.AdaptiveAvgPool2d((1,1))    
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_() 
         
         if "retinanet" in self.obj_detection_head and self.detect_objects:
             if "decoder" in self.blobs_strategy:
@@ -231,6 +239,9 @@ class ViewGenModels(ViewModel):
         self.dropout = torch.nn.Dropout(p=0.5, inplace=False)
 
         self.sigmoid = nn.Sigmoid()
+
+        
+
         self.shared_params = list(self.image_network.parameters())
 
         if self.gen_roadmap or (self.detect_objects and "decoder" in self.blobs_strategy):

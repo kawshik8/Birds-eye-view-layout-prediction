@@ -219,7 +219,7 @@ parser.add_argument(
     "--num-queries-percentage", type=float, default=0.25, help="number of patches an image to predict"
 )
 # num_workers
-parser.add_argument("--num_workers", type=int, default=16, help="number of cpu workers in iterator")
+parser.add_argument("--num-workers", type=int, default=16, help="number of cpu workers in iterator")
 
 # vocab_size
 parser.add_argument(
