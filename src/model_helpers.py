@@ -405,7 +405,7 @@ class ObjectDetectionHeads(nn.Module):
                 batch_output["boxes"] = transformed_anchors
                 batch_output["classes"] = classes
 
-                batch_output["ts_boxes"] = compute_ats_bounding_boxes(batch_output["boxes"], batch_input["bbox"])
+                batch_output["ts_boxes"] = torch.tensor(0)#compute_ats_bounding_boxes(batch_output["boxes"], batch_input["bbox"])
 
                 if self.args.gen_road_map:
                     batch_output["ts"] += batch_output["ts_boxes"]
