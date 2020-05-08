@@ -109,6 +109,8 @@ class ViewGenModels(ViewModel):
         self.obj_detection_head = self.args.obj_det_head
 
         self.gen_roadmap = self.args.gen_road_map
+        self.gen_semantic_map  = self.args.gen_semantic_map
+        self.gen_object_map = self.args.gen_object_map
         self.detect_objects = self.args.detect_objects
 
         self.fusion = self.args.view_fusion_strategy
@@ -147,7 +149,7 @@ class ViewGenModels(ViewModel):
         if self.dense_after_fuse:
             self.dcrefine_layers = 1
 
-        if self.gen_roadmap or (self.detect_objects and "decoder" in self.blobs_strategy):
+        if self.gen_roadmap or self.gen_semantic_map or self.gen_object_map or (self.detect_objects and "decoder" in self.blobs_strategy):
             # print("dfuse",self.dense_fuse, "cfuse", self.conv_fuse, "dproj", self.dense_project)
             self.fuse = Fusion(args, self.d_model, frefine_layers=self.frefine_layers, brefine_layers=self.brefine_layers, drefine_layers=self.drefine_layers, dense_fusion=self.dense_fuse, conv_fusion=self.conv_fuse, dcrefine_layers=self.dcrefine_layers)                           
             # print(self.fuse)
@@ -156,7 +158,7 @@ class ViewGenModels(ViewModel):
         
         
         
-        if self.gen_roadmap:
+        if self.gen_roadmap or self.gen_semantic_map or self.gen_object_map:
 
             if self.model_type == "det":                   
                                     
@@ -165,7 +167,7 @@ class ViewGenModels(ViewModel):
                     init_layer_dim = 32
                     init_channel_dim = 64
                     
-                    self.decoder_network = DecoderNetwork(init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
+                    self.decoder_network = DecoderNetwork(self.args, init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
 
                     self.decoding = nn.Sequential(self.decoder_network)
                     
@@ -177,18 +179,18 @@ class ViewGenModels(ViewModel):
                         if self.dcrefine_layers > 0:
                             init_layer_dim = 32
                             init_channel_dim = 64
-                            self.decoder_network = DecoderNetwork(init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
+                            self.decoder_network = DecoderNetwork(self.args, init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
 
                         else:
                             init_layer_dim = 32
                             init_channel_dim = 128
-                            self.decoder_network = DecoderNetwork(init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
+                            self.decoder_network = DecoderNetwork(self.args, init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
                         # print("add_convs_before_decoding", self.add_convs_before_decoding)
                         
                     else:
                         init_layer_dim = 8
                         init_channel_dim = 128
-                        self.decoder_network = DecoderNetwork(init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_convs_before_decoding=True)
+                        self.decoder_network = DecoderNetwork(self.args, init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_convs_before_decoding=True)
 
                    
 
@@ -200,7 +202,7 @@ class ViewGenModels(ViewModel):
                 init_layer_dim = 32
                 init_channel_dim = self.max_f
 
-                self.decoder_network = DecoderNetwork(init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
+                self.decoder_network = DecoderNetwork(self.args, init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
 
                 if self.conv_fuse:
                     self.avg_pool_refine = dblock(self.latent_dim, self.latent_dim)
@@ -216,7 +218,10 @@ class ViewGenModels(ViewModel):
             if self.loss_type == "mse":
                 self.criterion = torch.nn.MSELoss()
             elif self.loss_type == "bce":
-                self.criterion = torch.nn.BCEWithLogitsLoss()
+                if self.gen_roadmap:
+                    self.criterion = torch.nn.BCEWithLogitsLoss()
+                else:
+                    self.criterion = nn.CrossEntropyLoss()
             
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1,1))    
@@ -244,13 +249,13 @@ class ViewGenModels(ViewModel):
 
         self.shared_params = list(self.image_network.parameters())
 
-        if self.gen_roadmap or (self.detect_objects and "decoder" in self.blobs_strategy):
+        if self.gen_roadmap or self.gen_semantic_map or self.gen_object_map or (self.detect_objects and "decoder" in self.blobs_strategy):
             if args.imagessl_load_ckpt:
                 self.finetune_params += list(self.fuse.parameters())
             else:
                 self.shared_params += list(self.fuse.parameters())
 
-        if self.gen_roadmap:
+        if self.gen_roadmap or self.gen_semantic_map or self.gen_object_map:
             self.finetune_params += list(self.decoding.parameters())
 
         if self.detect_objects:
@@ -289,11 +294,11 @@ class ViewGenModels(ViewModel):
 
         # print("views", views.shape)
 
-        if self.gen_roadmap or (self.detect_objects and "decoder" in self.blobs_strategy):
+        if self.gen_roadmap or self.gen_semantic_map or self.gen_object_map or (self.detect_objects and "decoder" in self.blobs_strategy):
             fusion = self.fuse(views)
             # print("fusion", fusion.shape)
 
-        if self.gen_roadmap:
+        if self.gen_roadmap or self.gen_semantic_map or self.gen_object_map:
             if "det" in self.model_type:
                 # print("here")
                 # if self.dense_fuse:
@@ -305,20 +310,39 @@ class ViewGenModels(ViewModel):
                 mapped_image = self.decoder_network(fusion)#fusion)
                 
                 # if self.training:
-                
-                batch_output["road_map"] = torch.sigmoid(mapped_image)
-                if self.loss_type == "dice":
-                    batch_output["recon_loss"] = dice_loss(batch_input["road"], batch_output["road_map"])
-                elif self.loss_type=='bce':
-                    batch_output["recon_loss"] = self.criterion(mapped_image, batch_input["road"])
+                print(mapped_image.shape)
+                if self.gen_roadmap:
+                    batch_output["road_map"] = F.sigmoid(mapped_image)
                 else:
-                    batch_output["recon_loss"] = self.criterion(batch_output["road_map"], batch_input["road"])
+                    batch_output["sem_map"] = F.softmax(mapped_image,dim=1)
+
+                if self.loss_type == "dice":
+                    if self.args.gen_road_map:
+                        batch_output["recon_loss"] = dice_loss(batch_input["road"].type(torch.LongTensor), mapped_image)
+                    else:
+                        batch_output["recon_loss"] = dice_loss(batch_input["sem_map"].max(dim=1)[1].type(torch.LongTensor), mapped_image)
+
+                elif self.loss_type=='bce':
+                    if self.gen_roadmap:
+                        batch_output["recon_loss"] = self.criterion(mapped_image, batch_input["road"])
+                    else:
+                        batch_output["recon_loss"] = self.criterion(mapped_image, batch_input["sem_map"].max(dim=1)[1])
+
+                else:
+                    if self.args.gen_road_map:
+                        batch_output["recon_loss"] = self.criterion(batch_output["road_map"], batch_input["road"])
+                    else:
+                        batch_output["recon_loss"] = self.criterion(batch_output["sem_map"], batch_input["sem_map"])
                 
-                batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
+                if self.gen_roadmap:
+                    batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
+                else:
+                    batch_output["ts_road_map"] = (batch_output["sem_map"].max(dim=1)[1]==batch_input["sem_map"].max(dim=1)[1]).float().mean()
+
                 batch_output["ts"] = batch_output["ts_road_map"]
                 batch_output["loss"] += batch_output["recon_loss"]
                 # else:
-                #     return torch.sigmoid(mapped_image)
+                #     return nn.Sigmoid(mapped_image)
 
             else:
                 
@@ -338,19 +362,27 @@ class ViewGenModels(ViewModel):
   
                 generated_image = self.decoder_network(z)
 
-                
-
-                batch_output["road_map"] = torch.sigmoid(generated_image)
+                if self.gen_roadmap:
+                    batch_output["road_map"] = nn.Sigmoid(generated_image)
+                else:
+                    batch_output["sem_map"] = nn.Softmax(generated_image,dim=1)
 
                 if self.loss_type == "dice":
                     batch_output["recon_loss"] = dice_loss(batch_input["road"], batch_output["road_map"])
                 elif self.loss_type=='bce':
-                    batch_output["recon_loss"] = self.criterion(generated_image, batch_input["road"])
+                    if self.gen_roadmap:
+                        batch_output["recon_loss"] = self.criterion(generated_image, batch_input["road"])
+                    else:
+                        batch_output["recon_loss"] = self.criterion(generated_image, batch_input["sem_map"].max(dim=1)[1])
                 else:
                     batch_output["recon_loss"] = self.criterion(batch_output["road_map"], batch_input["road"])
+                
+                if self.gen_roadmap:
+                    batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
+                else:
+                    batch_output["ts_road_map"] = (batch_output["road_map"].max(dim=1)[1]==batch_input["sem_map"].max(dim=1)[1]).float().mean()
 
                 batch_output["KLD_loss"] = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-                batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
                 batch_output["ts"] = batch_output["ts_road_map"]
                 batch_output["loss"] += batch_output["recon_loss"] + batch_output["KLD_loss"]
 

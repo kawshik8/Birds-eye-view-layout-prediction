@@ -35,7 +35,14 @@ class Discriminator(nn.Module):
             channels = [64,128,256,256,512,512,512]
 
         network_layers = []
-        initc = 1
+
+        if self.args.gen_road_map:
+            initc = 1
+        elif self.args.gen_semantic_map:
+            initc = 11
+        else:
+            initc = 3
+
         for i,channel in enumerate(channels):
             if i == len(channels)-1 and "patch" in self.type:
                 network_layers.append(block(initc,channel,3,1,1,activation="sigmoid",norm=False))
@@ -231,7 +238,7 @@ class ViewGANModels(GAN):
             init_layer_dim = 32
             init_channel_dim = 64
             
-            self.decoder_network = DecoderNetwork(init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
+            self.decoder_network = DecoderNetwork(self.args, init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
 
             
         else:
@@ -241,18 +248,18 @@ class ViewGANModels(GAN):
                 if self.dcrefine_layers > 0:
                     init_layer_dim = 32
                     init_channel_dim = 64
-                    self.decoder_network = DecoderNetwork(init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
+                    self.decoder_network = DecoderNetwork(self.args, init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
 
                 else:
                     init_layer_dim = 32
                     init_channel_dim = 128
-                    self.decoder_network = DecoderNetwork(init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
+                    self.decoder_network = DecoderNetwork(self.args, init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_initial_upsample_conv=True)
                 # print("add_convs_before_decoding", self.add_convs_before_decoding)
                 
             else:
                 init_layer_dim = 8
                 init_channel_dim = 128
-                self.decoder_network = DecoderNetwork(init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_convs_before_decoding=True)
+                self.decoder_network = DecoderNetwork(self.args, init_layer_dim, init_channel_dim, self.max_f, self.d_model, add_convs_before_decoding=True)
 
             
             # print(self.decoder_network)
@@ -267,7 +274,10 @@ class ViewGANModels(GAN):
         if self.loss_type == "mse":
             self.criterion = torch.nn.MSELoss()
         elif self.loss_type == "bce":
-            self.criterion = torch.nn.BCELoss()
+            if self.args.gen_road_map:
+                self.criterion = torch.nn.BCEWithLogitsLoss()
+            else:
+                self.criterion = torch.nn.CrossEntropyLoss()
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -286,9 +296,6 @@ class ViewGANModels(GAN):
         self.dropout = torch.nn.Dropout(p=0.5, inplace=False)
 
         self.sigmoid = nn.Sigmoid()
-
-
-       
 
         self.shared_params = list(self.image_network.parameters())
 
@@ -360,14 +367,31 @@ class ViewGANModels(GAN):
         # batch_output["fake_dloss"] = self.criterion(fake_disc_op,zeros)
         # batch_output["Dloss"] = batch_output["real_dloss"] + batch_output["fake_dloss"]
 
-        batch_output["road_map"] = torch.sigmoid(gen_image)
-        batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
+        if self.args.gen_road_map:
+            batch_output["road_map"] = F.sigmoid(gen_image)
+        else:
+            batch_output["road_map"] = F.softmax(gen_image,dim=1)
+
+        if self.args.gen_road_map:
+            batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],batch_input["road"])
+        else:
+            batch_output["ts_road_map"] = (batch_output["road_map"].max(dim=1)[1] == batch_input["sem_map"].max(dim=1)[1]).float().mean()
+
         batch_output["ts"] = batch_output["ts_road_map"]
         # batch_output["GDiscloss"] = self.criterion(fake_disc_op,ones)
         if self.args.road_map_loss == "dice":
-            batch_output["GSupLoss"] = dice_loss(batch_input["road"], batch_output["road_map"])
+            if self.args.gen_road_map:
+                batch_output["GSupLoss"] = dice_loss(batch_input["road"].type(torch.LongTensor), gen_image)
+            else:
+                batch_output["GSupLoss"] = dice_loss(batch_input["sem_map"].max(dim=1)[1].type(torch.LongTensor), gen_image)
+            # batch_output["GSupLoss"] = dice_loss(batch_input["road"], batch_output["road_map"])
         else:
-            batch_output["GSupLoss"] = self.criterion(batch_output["road_map"], batch_input["road"])
+            if self.args.gen_road_map:
+                batch_output["GSupLoss"] = self.criterion(gen_image, batch_input["road"])
+            else:
+                batch_output["GSupLoss"] = self.criterion(gen_image, batch_input["sem_map"].max(dim=1)[1])
+
+        
         # else:
         #     batch_output["GSupLoss"] = self.criterion(batch_output["road_map"], batch_input["road"])
 
@@ -379,11 +403,11 @@ class ViewGANModels(GAN):
 
         # if self.training:
         #     batch_output["recon_loss"] = self.criterion(mapped_image, road_map)
-        #     batch_output["road_map"] = torch.sigmoid(mapped_image)
+        #     batch_output["road_map"] = nn.Sigmoid(mapped_image)
         #     batch_output["ts_road_map"] = compute_ts_road_map(batch_output["road_map"],road_map)
         #     batch_output["loss"] += batch_output["recon_loss"]
         # else:
-        #     return torch.sigmoid(mapped_image)
+        #     return nn.Sigmoid(mapped_image)
 
         # if self.detect_objects:
             

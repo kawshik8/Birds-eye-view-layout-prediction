@@ -47,13 +47,13 @@ class Trainer(object):
         self.task.reset_scorers()
         with torch.no_grad():
             for batch, inputs in enumerate(self.task.data_iterators[split]):
-            #   if batch < 5:
+              if batch < 5:
                 if self.stage == "pretrain":
                     index, image, query = inputs
                     batch_input = {"image":image,"query":query,"idx":index}
                 else:
-                    index, image, bounding_box, classes, action, ego, road = inputs
-                    batch_input = {"image":image,"idx":index, "bbox":bounding_box, "classes":classes, "action":action, "ego":ego, "road":road}
+                    index, image, bounding_box, classes, action, ego, road, sem_map = inputs
+                    batch_input = {"image":image,"idx":index, "bbox":bounding_box, "classes":classes, "action":action, "ego":ego, "road":road, "sem_map":sem_map}
 
 
                 for k, v in batch_input.items():
@@ -92,8 +92,8 @@ class Trainer(object):
                     index, image, query = inputs
                     batch_input = {"image":image,"query":query,"idx":index}
                 else:
-                    index, image, bounding_box, classes, action, ego, road = inputs
-                    batch_input = {"image":image,"idx":index, "bbox":bounding_box, "classes":classes, "action":action, "ego":ego, "road":road}
+                    index, image, bounding_box, classes, action, ego, road, sem_map = inputs
+                    batch_input = {"image":image,"idx":index, "bbox":bounding_box, "classes":classes, "action":action, "ego":ego, "road":road, "sem_map":sem_map}
 
                 for k, v in batch_input.items():
                     batch_input[k] = batch_input[k].to(self.args.device)
@@ -211,13 +211,13 @@ class GANTrainer(object):
         self.task.reset_scorers()
         with torch.no_grad():
             for batch, inputs in enumerate(self.task.data_iterators[split]):
-            #   if batch < 5:
+              if batch < 5:
                 if self.stage == "pretrain":
                     index, image, query = inputs
                     batch_input = {"image":image,"query":query,"idx":index}
                 else:
-                    index, image, bounding_box, classes, action, ego, road = inputs
-                    batch_input = {"image":image,"idx":index, "bbox":bounding_box, "classes":classes, "action":action, "ego":ego, "road":road}
+                    index, image, bounding_box, classes, action, ego, road, sem_map = inputs
+                    batch_input = {"image":image,"idx":index, "bbox":bounding_box, "classes":classes, "action":action, "ego":ego, "road":road, "sem_map":sem_map}
 
 
                 for k, v in batch_input.items():
@@ -229,7 +229,11 @@ class GANTrainer(object):
                 batch_output = self.model["generator"](batch_input, self.task)
                 gen_image = batch_output["road_map"]
 
-                real_disc_inp = batch_input["road"]
+                if self.args.gen_road_map:
+                    real_disc_inp = batch_input["road"]
+                else:
+                    real_disc_inp = batch_input["sem_map"]
+
                 fake_disc_inp = gen_image.detach()
 
                 if "patch" in self.args.disc_type:
@@ -253,11 +257,11 @@ class GANTrainer(object):
                 adv_output = self.model["discriminator"](gen_image)
 
                 batch_output["GDiscLoss"] = F.binary_cross_entropy(adv_output,ones)
-                batch_output["GLoss"] = batch_output["GDiscLoss"] + batch_output["GSupLoss"]
-
+                if self.args.use_sup_loss:
+                    batch_output["GLoss"] = batch_output["GDiscLoss"] + batch_output["GSupLoss"]
+                else:
+                    batch_output["GLoss"] = batch_output["GDiscLoss"]
                 batch_output["loss"] = batch_output["DLoss"] + batch_output["GLoss"]
-
-
 
                 self.task.update_scorers(batch_input, batch_output)
                 if (batch + 1) % self.report_interval == 0:
@@ -292,8 +296,8 @@ class GANTrainer(object):
                     index, image, query = inputs
                     batch_input = {"image":image,"query":query,"idx":index}
                 else:
-                    index, image, bounding_box, classes, action, ego, road = inputs
-                    batch_input = {"image":image,"idx":index, "bbox":bounding_box, "classes":classes, "action":action, "ego":ego, "road":road}
+                    index, image, bounding_box, classes, action, ego, road, sem_map = inputs
+                    batch_input = {"image":image,"idx":index, "bbox":bounding_box, "classes":classes, "action":action, "ego":ego, "road":road, "sem_map":sem_map}
 
                 for k, v in batch_input.items():
                     batch_input[k] = batch_input[k].to(self.args.device)
@@ -305,7 +309,10 @@ class GANTrainer(object):
 
                 batch_output = self.model["generator"](batch_input, self.task)
 
-                real_disc_inp = batch_input["road"]
+                if self.args.gen_road_map:
+                    real_disc_inp = batch_input["road"]
+                else:
+                    real_disc_inp = batch_input["sem_map"]
                 # print(real_disc_inp.shape)
 
                 if "patch" in self.args.disc_type:
@@ -324,7 +331,7 @@ class GANTrainer(object):
                 batch_output["real_DLoss"] = F.binary_cross_entropy(real_disc_op,ones)
                 batch_output["real_DLoss"].backward()
 
-                
+
                 generated = batch_output["road_map"].detach()
 
                 fake_disc_op = self.model["discriminator"](generated)
@@ -337,7 +344,10 @@ class GANTrainer(object):
                 adv_output = self.model["discriminator"](batch_output["road_map"])
 
                 batch_output["GDiscLoss"] = F.binary_cross_entropy(adv_output,ones)
-                batch_output["GLoss"] = batch_output["GDiscLoss"] + batch_output["GSupLoss"]
+                if self.args.use_sup_loss:
+                    batch_output["GLoss"] = batch_output["GDiscLoss"] + batch_output["GSupLoss"]
+                else:
+                    batch_output["GLoss"] = batch_output["GDiscLoss"]
 
                 
                 batch_output["GLoss"].backward()

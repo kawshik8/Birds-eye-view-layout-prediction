@@ -51,15 +51,17 @@ def collater(data):
     image_shape = data[0][1].shape
     
 
-    # index, image, bounding_box, classes, action, ego, road
+    # index, image, bounding_box, classes, action, ego, road, sem_map
     # index, image, query = inputs
-    if len(data[0]) == 7:
-        road_shape = data[0][-1].shape
-        ego_shape = data[0][-2].shape
+    if len(data[0]) == 8:
+        semantic_map_shape = data[0][-1].shape
+        road_shape = data[0][-2].shape
+        ego_shape = data[0][-3].shape
         indices = torch.zeros(bs,1)
         images = torch.zeros(bs, image_shape[0], image_shape[1], image_shape[2], image_shape[3])
         egos = torch.zeros(bs,ego_shape[0],ego_shape[1],ego_shape[2])
         roads = torch.zeros(bs,road_shape[0],road_shape[1],road_shape[2])
+        semantic_maps = torch.zeros(bs,semantic_map_shape[0],semantic_map_shape[1],semantic_map_shape[2])
 
         shapes = []
         for item_set in data:
@@ -72,7 +74,7 @@ def collater(data):
         classes = torch.ones(bs,max_boxes,1)*-1
         actions = torch.ones(bs,max_boxes)*-1
 
-        items = [indices, images, bboxes, classes, actions, egos, roads]
+        items = [indices, images, bboxes, classes, actions, egos, roads, semantic_maps]
 
         for i,data_items in enumerate(data):
             for j, item in enumerate(data_items):
@@ -245,7 +247,7 @@ class Task(object):
         # if pretrain:
         #     self.eval_metric = "acc"
         # else:
-        if pretrain:
+        if pretrain or self.args.gen_semantic_map or self.args.gen_object_map:
             self.eval_metric = "loss"
         else:
             self.eval_metric = "ts"
@@ -379,7 +381,7 @@ class Task(object):
                     for i in ["classification_loss", "detection_loss", "ts_boxes"]:
                         del self.scorers[i]
 
-                if not self.args.gen_road_map:
+                if not self.args.gen_road_map and not self.args.gen_semantic_map and not self.args.gen_object_map:
                     for i in ["KLD_loss", "recon_loss", "ts_road_map"]:
                         del self.scorers[i]
 

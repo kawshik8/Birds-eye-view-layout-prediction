@@ -95,6 +95,7 @@ class UnlabeledDataset(torch.utils.data.Dataset):
 
             return index, image, query
 
+
 # The dataset class for labeled data.
 class LabeledDataset(torch.utils.data.Dataset):    
     def __init__(self, args, scene_index=labelled_scene_index, extra_info=True, transform = transform):
@@ -163,7 +164,11 @@ class LabeledDataset(torch.utils.data.Dataset):
         # bbox[:, 3] = bounding_box[:, :, 1].max(dim=1)[0]
 
         # Computre rotate angle from center point
+        
         for i, box in enumerate(bounding_box):
+
+            
+
             if box[0][0] <= box[2][0] and box[0][1] >= box[1][1]:
                 br = box[0]
                 bl = box[1]
@@ -255,11 +260,27 @@ class LabeledDataset(torch.utils.data.Dataset):
 
             # print("\nafter:",bbox_new[i])
             # if len(bbox_rotated[bbox_rotated<0])>0:
-            # exit(0)
 
         # print(bbox[0])
         # print(scene_id, sample_id, bounding_box.shape)
         classes = torch.as_tensor(categories).view(-1, 1)
+
+        # print(bbox_new.shape,classes.shape)
+
+
+        if self.args.gen_semantic_map:
+            semantic_map_path = os.path.join(sample_path,"semantic_map.npy")
+            semantic_map = np.load(semantic_map_path)
+            semantic_map = F.one_hot(torch.tensor(semantic_map).to(torch.int64),11)
+
+        else:# self.args.gen_object_map:
+            semantic_map_path = os.path.join(sample_path,"object_map.npy")
+            semantic_map = np.load(semantic_map_path)
+            semantic_map = F.one_hot(torch.tensor(semantic_map).to(torch.int64),3)
+
+        semantic_map = semantic_map.transpose(1,2).transpose(0,1)
+
+        # plt.imshow(semantic_map)
 
 
         if self.extra_info:
@@ -275,7 +296,7 @@ class LabeledDataset(torch.utils.data.Dataset):
             # print(bounding_box.shape,classes.shape)
             # print(classes)
             # exit(0)
-            return index,image_tensor, bbox_new, classes, action, ego, road_image
+            return index,image_tensor, bbox_new, classes, action, ego, road_image, semantic_map
 
         else:
             return index,image_tensor, bbox_new, classes

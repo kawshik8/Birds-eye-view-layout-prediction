@@ -21,6 +21,7 @@ class PyramidFeatures(nn.Module):
         self.fusion = args.view_fusion_strategy
 
         self.conv_fuse = True
+        self.dense_fuse = False
         self.dense_before_fuse = False
         self.dense_after_fuse = False
 
@@ -41,9 +42,13 @@ class PyramidFeatures(nn.Module):
 
         self.fusion_strategy = fusion_strategy
         if self.fusion_strategy:
-            self.fuse1 = nn.Conv2d(6*C3_size,C3_size, kernel_size = 1, stride = 1, padding = 0)
-            self.fuse2 = nn.Conv2d(6*C4_size,C4_size, kernel_size = 1, stride = 1, padding = 0)
-            self.fuse3 = nn.Conv2d(6*C5_size,C5_size, kernel_size = 1, stride = 1, padding = 0)
+            self.fuse1 = Fusion(args, C3_size, frefine_layers=self.frefine_layers, brefine_layers=self.brefine_layers, drefine_layers=self.drefine_layers, dense_fusion=self.dense_fuse, conv_fusion=self.conv_fuse, dcrefine_layers=self.dcrefine_layers)                           
+            self.fuse2 = Fusion(args, C4_size, frefine_layers=self.frefine_layers, brefine_layers=self.brefine_layers, drefine_layers=self.drefine_layers, dense_fusion=self.dense_fuse, conv_fusion=self.conv_fuse, dcrefine_layers=self.dcrefine_layers)                           
+            self.fuse3 = Fusion(args, C5_size, frefine_layers=self.frefine_layers, brefine_layers=self.brefine_layers, drefine_layers=self.drefine_layers, dense_fusion=self.dense_fuse, conv_fusion=self.conv_fuse, dcrefine_layers=self.dcrefine_layers)                           
+
+            # self.fuse1 = nn.Conv2d(6*C3_size,C3_size, kernel_size = 1, stride = 1, padding = 0)
+            # self.fuse2 = nn.Conv2d(6*C4_size,C4_size, kernel_size = 1, stride = 1, padding = 0)
+            # self.fuse3 = nn.Conv2d(6*C5_size,C5_size, kernel_size = 1, stride = 1, padding = 0)
 
         # upsample C5 to get P5 from the FPN paper
         self.P5_1 = nn.Conv2d(C5_size, feature_size, kernel_size=1, stride=1, padding=0)
@@ -74,11 +79,11 @@ class PyramidFeatures(nn.Module):
         if self.fusion_strategy is not None:
             
             b,c,h,w = C3.shape
-            C3 = self.fuse1(C3.view(-1,6,c,h,w).flatten(1,2))
+            C3 = self.fuse1(C3.view(-1,6,c,h,w))
             b,c,h,w = C4.shape
-            C4 = self.fuse2(C4.view(-1,6,c,h,w).flatten(1,2))
+            C4 = self.fuse2(C4.view(-1,6,c,h,w))
             b,c,h,w = C5.shape
-            C5 = self.fuse3(C5.view(-1,6,c,h,w).flatten(1,2))
+            C5 = self.fuse3(C5.view(-1,6,c,h,w))
 
         # print("c3,c4,c5", C3.shape,C4.shape,C5.shape)
 
@@ -625,11 +630,12 @@ class Fusion(nn.Module):
         return x
 
 class DecoderNetwork(nn.Module):
-    def __init__(self, init_layer_dim, init_channel_dim, max_f, d_model, add_convs_before_decoding=False,add_initial_upsample_conv=False):
+    def __init__(self, args, init_layer_dim, init_channel_dim, max_f, d_model, add_convs_before_decoding=False,add_initial_upsample_conv=False):
         super().__init__()
         
         decoder_network_layers = []
 
+        self.args = args
         self.max_f = max_f
         self.init_layer_dim = init_layer_dim
         self.init_channel_dim = init_channel_dim
@@ -674,8 +680,16 @@ class DecoderNetwork(nn.Module):
 #                 decoder_network_layers.append(
 #                     nn.ZeroPad2d((1,0,1,0))
 #                 )
+
+        if self.args.gen_road_map:
+            outdim = 1
+        elif self.args.gen_semantic_map:
+            outdim = 11
+        else:
+            outdim = 3
+
         decoder_network_layers.append(
-            block(int(self.init_channel_dim), 1, 3, 1, 1, activation="identity", norm = False),
+            block(int(self.init_channel_dim), outdim, 3, 1, 1, activation="identity", norm = False),
         )
 
         self.decoder_network = nn.Sequential(*decoder_network_layers)

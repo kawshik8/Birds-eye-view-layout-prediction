@@ -83,6 +83,27 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--gen-semantic-map",
+    type=int,
+    default=0,
+    help="train semnatic map generation as well?",
+)
+
+parser.add_argument(
+    "--gen-object-map",
+    type=int,
+    default=0,
+    help="train obejct map generation as well?",
+)
+
+parser.add_argument(
+    "--use-sup-loss",
+    type=int,
+    default=0,
+    help="use supervised loss for gan too?",
+)
+
+parser.add_argument(
     "--detect-objects",
     type=int,
     default=0,
