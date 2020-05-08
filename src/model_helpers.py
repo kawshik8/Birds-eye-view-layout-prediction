@@ -392,7 +392,7 @@ class ObjectDetectionHeads(nn.Module):
             # print(scores.shape)
             # print((scores>0.00).shape)
             scores_over_thresh = (scores > 0.02)[:, :, 0]
-            print(scores_over_thresh.shape)
+            # print(scores_over_thresh.shape)
             # print(classification.shape)
 
             # print(scores_over_thresh.sum())
@@ -416,19 +416,24 @@ class ObjectDetectionHeads(nn.Module):
                 # no boxes to NMS, just return
 
 
-            batch_output["classes"] = classes
+            # batch_output["classes"] = classes
 
             final_preds = []
+            final_cls = []
             shapes = []
             batch_output["ts_boxes"] = torch.zeros(bs)
+            
 
             for bi in range(bs):
 
-                classification = classification[bi,scores_over_thresh[bi],:]
+                # print(classification.shape)
+                classification_t = classification[bi,scores_over_thresh[bi],:]
+                final_cls.append(classification_t)
                 # print(classification.shape)
                 # print(transformed_anchors.shape)
                 # _,b,c = transformed_anchors.shape
-                transformed_anchors = transformed_anchors[bi,scores_over_thresh[bi],:]#.view(bs,-1,transformed_anchors.shape[2],transformed_anchors.shape[3])
+                transformed_anchors_t = transformed_anchors[bi,scores_over_thresh[bi],:]#.view(bs,-1,transformed_anchors.shape[2],transformed_anchors.shape[3])
+                final_preds.append(transformed_anchors_t)
                 # print(transformed_anchors.shape)
                 # scores = scores[[bi]scores_over_thresh]#.view(bs,-1,1)
                 # print(scores.shape)
@@ -443,19 +448,20 @@ class ObjectDetectionHeads(nn.Module):
                 # print(nms_scores.shape,nms_class.shape)
                 
                 
-                boxes = transformed_anchors#[0, anchors_nms_idx, :]
-                final_preds.append(boxes)
+                boxes = transformed_anchors_t#[0, anchors_nms_idx, :]
                 shapes.append(boxes.shape[0])
 
-                batch_output["ts_boxes"].append(compute_ats_bounding_boxes(boxes.unsqueeze(0), batch_input["bbox"][bi:bi+1]))
+                batch_output["ts_boxes"][bi] = (compute_ats_bounding_boxes(boxes.unsqueeze(0), batch_input["bbox"][bi:bi+1]))
 
             max_bshape = torch.max(shapes)
             batch_output["boxes"] = torch.zeros(bs,max_bshape,4,2)
+            batch_output["classes"] = torch.zeros(bs,max_bshape,9)
             
-            index = 0
+            # index = 0
             for bi in range(bs):
-                batch_output["boxes"][bi,:shapes[bi]] = final_preds[index:index+shapes[bi]]
-                index += shapes[bi]
+                batch_output["boxes"][bi,:shapes[bi]] = final_preds[bi]#index:index+shapes[bi]]
+                batch_output["classes"][bi,:shapes[bi]] = final_cls[bi]
+                # index += shapes[bi]
 
             if self.args.gen_road_map:
                 batch_output["ts"] += batch_output["ts_boxes"]
