@@ -384,13 +384,18 @@ class ObjectDetectionHeads(nn.Module):
             transformed_anchors = self.clipBoxes(transformed_anchors, batch_input["image"].flatten(0,1))
 
             # print(bbox.shape)
-            
+            bs = classification.shape[0]
 
             scores, classes = classification.max(dim=2, keepdim=True)#torch.max(classification, dim=2, keepdim=True)
             # # print()
             # print(scores.shape, (scores > 0.05).shape)
+            # print(scores.shape)
+            # print((scores>0.00).shape)
+            scores_over_thresh = (scores > 0.01)[:, :, 0]
+            # print(scores_over_thresh.shape)
+            # print(classification.shape)
 
-            scores_over_thresh = (scores > 0.05)[:, :, 0]
+            # print(scores_over_thresh.sum())
 
             if scores_over_thresh.sum() == 0:
             # #     # batch_output["classification_loss"], batch_output["detection_loss"] = self.focalLoss(classification, regression, anchors, annotations)
@@ -408,21 +413,28 @@ class ObjectDetectionHeads(nn.Module):
                     batch_output["ts"] = batch_output["ts_boxes"]
 
                 return batch_output
-            #     # no boxes to NMS, just return
+                # no boxes to NMS, just return
 
-            classification = classification[:, scores_over_thresh, :]
-            transformed_anchors = transformed_anchors[:, scores_over_thresh, :]
-            scores = scores[:, scores_over_thresh, :]
+            classification = classification[scores_over_thresh,:].view(bs,-1,9)
+            # print(classification.shape)
+            # print(transformed_anchors.shape)
+            # _,b,c = transformed_anchors.shape
+            transformed_anchors = transformed_anchors[scores_over_thresh,:].view(bs,-1,transformed_anchors.shape[2],transformed_anchors.shape[3])
+            # print(transformed_anchors.shape)
+            scores = scores[scores_over_thresh].view(bs,-1,1)
+            # print(scores.shape)
 
-            anchors_nms_idx = nms(transformed_anchors[0,:,:], scores[:,:,0], 0.5)
+            # print(transformed_anchors.shape)
+            # print(scores[:,:,0].shape)
+            # anchors_nms_idx = nms(transformed_anchors[:,:,:], scores[:,:,0], 0.5)
 
             # print(classification.shape, classification[0, anchors_nms_idx, :].shape)
-            nms_scores, nms_class = classification[:, anchors_nms_idx, :].max(dim=1)
+            # nms_scores, nms_class = classification[:, anchors_nms_idx, :].max(dim=1)
 
             # print(nms_scores.shape,nms_class.shape)
             
-            batch_output["classes"] = nms_class
-            batch_output["boxes"] = transformed_anchors[0, anchors_nms_idx, :]
+            batch_output["classes"] = classes
+            batch_output["boxes"] = transformed_anchors#[0, anchors_nms_idx, :]
 
             batch_output["ts_boxes"] = compute_ats_bounding_boxes(batch_output["boxes"], batch_input["bbox"])
 
