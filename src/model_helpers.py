@@ -391,7 +391,7 @@ class ObjectDetectionHeads(nn.Module):
             # print(scores.shape, (scores > 0.05).shape)
             # print(scores.shape)
             # print((scores>0.00).shape)
-            scores_over_thresh = (scores > 0.01)[:, :, 0]
+            scores_over_thresh = (scores > 0.05[:, :, 0]
             # print(scores_over_thresh.shape)
             # print(classification.shape)
 
