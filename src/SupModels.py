@@ -310,7 +310,7 @@ class ViewGenModels(ViewModel):
                 mapped_image = self.decoder_network(fusion)#fusion)
                 
                 # if self.training:
-                print(mapped_image.shape)
+#                print(mapped_image.shape)
                 if self.gen_roadmap:
                     batch_output["road_map"] = F.sigmoid(mapped_image)
                 else:
