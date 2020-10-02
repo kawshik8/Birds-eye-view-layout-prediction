@@ -63,7 +63,6 @@ class UnlabeledDataset(torch.utils.data.Dataset):
             scene_id = self.scene_index[index // NUM_SAMPLE_PER_SCENE]
             sample_id = index % NUM_SAMPLE_PER_SCENE
             sample_path = os.path.join(self.image_folder, 'scene_'+str(scene_id), 'sample_'+str(sample_id)) 
-            
             images = []
             queries = []
             for image_name in image_names:
@@ -300,5 +299,3 @@ class LabeledDataset(torch.utils.data.Dataset):
 
         else:
             return index,image_tensor, bbox_new, classes
-
-        
