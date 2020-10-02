@@ -1,2 +1,2 @@
-# DL-project
- SSL for video
+# Deep Learning Course Project
+
