@@ -25,7 +25,7 @@ Refer to `src/` for code used to train and test road layout prediction models.
 - training and validation scripts `src/trainer` <br>
 
 
-### Self-supervised learning (tried but didn't use in final models)
+### Self-supervised learning 
 Implemented PIRL and SIMCLR SSL techniques in src/SSLmodels.py
 
 
