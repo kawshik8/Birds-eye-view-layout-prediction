@@ -35,11 +35,11 @@ Libraries used<br>
 - [OpenCV](https://opencv.org/)
 
 ### Papers and useful links:
-- simclr (add link) <br>
-- PIRL (add link) 
-- retinanet (add link) <br>
-- rotation based object detection (add link)
-- focal loss (add link)
+- simclr https://arxiv.org/abs/2002.05709 <br>
+- PIRL https://arxiv.org/abs/1912.01991
+- retinanet https://arxiv.org/abs/1708.02002 <br>
+- rotation based object detection https://arxiv.org/pdf/1911.08299.pdf
+
 
 
 
